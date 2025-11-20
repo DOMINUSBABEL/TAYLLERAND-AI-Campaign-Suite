@@ -1,0 +1,160 @@
+import pandas as pd
+import io
+
+class E26Processor:
+    """
+    Module 2: E-26 Election Processor
+    Updated for Strict Real Data: CSV Ingestion Only.
+    """
+    def __init__(self):
+        # Hardcoded Geocoding DB for Medellín Voting Posts (Partial/Key Locations)
+        self.geo_db = {
+            "EAFIT": (6.2005, -75.5785),
+            "UPB": (6.2420, -75.5900),
+            "MARYMOUNT": (6.2050, -75.5600),
+            "SAN JOSE DE LA SALLE": (6.2205, -75.5685),
+            "CLUB CAMPESTRE": (6.1900, -75.5750),
+            "PLAZA MAYOR": (6.2430, -75.5750),
+            "ESTADIO ATANASIO GIRARDOT": (6.2606, -75.5881),
+            "INEM JOSE FELIX DE RESTREPO": (6.2080, -75.5700),
+            "POLITECNICO JAIME ISAZA CADAVID": (6.2120, -75.5750),
+            "COL SAN IGNACIO": (6.2445, -75.5638),
+            "I.E. VILLA HERMOSA": (6.2550, -75.5450),
+            "I.E. MANRIQUE CENTRAL": (6.2780, -75.5480),
+            "I.E. EL PICACHO": (6.2950, -75.5850),
+            "ITM ROBLEDO": (6.2750, -75.5950),
+            "UNIV. DE MEDELLIN": (6.2310, -75.6100),
+            "PARQUE BIBLIOTECA BELEN": (6.2300, -75.6050),
+            "SAN CRISTOBAL PARQUE": (6.2780, -75.6350),
+            "SAN ANTONIO DE PRADO": (6.1850, -75.6550),
+            "SANTA ELENA": (6.2050, -75.5000),
+        }
+        
+        # Comuna Centroids for Deterministic Fallback
+        self.comuna_centroids = {
+            "01": (6.295, -75.545), "02": (6.285, -75.555), "03": (6.275, -75.550), "04": (6.265, -75.560),
+            "05": (6.290, -75.575), "06": (6.280, -75.585), "07": (6.270, -75.595), "08": (6.250, -75.545),
+            "09": (6.235, -75.550), "10": (6.250, -75.570), "11": (6.245, -75.595), "12": (6.255, -75.605),
+            "13": (6.255, -75.615), "14": (6.210, -75.570), "15": (6.220, -75.585), "16": (6.230, -75.605),
+            "50": (6.340, -75.650), "60": (6.280, -75.630), "70": (6.210, -75.630), "80": (6.180, -75.640), "90": (6.210, -75.500)
+        }
+
+    def geocode_station(self, station_name, zone_id=None):
+        """
+        Tries to find coordinates for a station name.
+        1. Exact/Fuzzy Match in DB.
+        2. Deterministic Offset from Comuna Centroid (using Zone ID).
+        """
+        station_upper = str(station_name).upper()
+        
+        # 1. DB Match
+        for key, coords in self.geo_db.items():
+            if key in station_upper:
+                return coords
+        
+        # 2. Deterministic Fallback (Coverage Engine)
+        if zone_id:
+            zone_str = str(zone_id).zfill(2)
+            centroid = self.comuna_centroids.get(zone_str)
+            if centroid:
+                # Generate deterministic offset based on station name hash
+                # This ensures the station always stays in the same place
+                h = hash(station_upper)
+                # Offset range: +/- 0.005 degrees (~500m)
+                lat_offset = (h % 100 - 50) / 10000.0 
+                lon_offset = ((h // 100) % 100 - 50) / 10000.0
+                return (centroid[0] + lat_offset, centroid[1] + lon_offset)
+        
+        # 3. Ultimate Fallback (Centro)
+        return (6.2442, -75.5812)
+
+    def load_data_from_csv(self, uploaded_file):
+        """
+        Parses an uploaded CSV file (E-26 format).
+        Supports both Official Registraduría (Semicolon) and Standard (Comma).
+        """
+        if uploaded_file is None:
+            return pd.DataFrame() # Return empty if no file
+            
+        try:
+            # Try reading with semicolon first (Official Standard)
+            try:
+                df = pd.read_csv(uploaded_file, sep=';')
+                if 'PUESTO' not in df.columns:
+                    # Fallback to comma if semicolon fails to find columns
+                    uploaded_file.seek(0)
+                    df = pd.read_csv(uploaded_file, sep=',')
+            except:
+                uploaded_file.seek(0)
+                df = pd.read_csv(uploaded_file, sep=',')
+            
+            # Normalize Columns
+            df.columns = [c.upper() for c in df.columns]
+            
+            # Map to internal standard
+            if 'VOTOS' in df.columns and 'PUESTO' in df.columns:
+                return df
+                
+            return pd.DataFrame() # Invalid format
+            
+        except Exception as e:
+            print(f"Error reading CSV: {e}")
+            return pd.DataFrame()
+
+    def load_demo_data(self):
+        """
+        Loads the High-Fidelity Preload CSV.
+        """
+        try:
+            # Load the Official-Format Preload
+            df = pd.read_csv("E26_MEDELLIN_2022_PRELOAD.csv", sep=';')
+            return df
+        except Exception as e:
+            print(f"Error loading preload data: {e}")
+            return pd.DataFrame()
+
+    def process_data(self, df, target_candidate=None):
+        """
+        Aggregates votes by Puesto.
+        If target_candidate is provided, filters for that candidate.
+        """
+        if df.empty:
+            return pd.DataFrame(columns=["Puesto", "lat", "lon", "Votos", "historical_strength"])
+            
+        # Normalize columns for processing
+        df.columns = [c.upper() for c in df.columns]
+        
+        # Filter if needed
+        if target_candidate:
+            target_upper = target_candidate.upper()
+            if "CANDIDATO" in df.columns:
+                # Fuzzy match or exact match
+                target_df = df[df["CANDIDATO"].str.contains(target_upper, na=False)].copy()
+            else:
+                target_df = df.copy()
+        else:
+            target_df = df.copy()
+            
+        if target_df.empty:
+             return pd.DataFrame(columns=["Puesto", "lat", "lon", "Votos", "historical_strength"])
+
+        # Group by ZONA and PUESTO to keep location context
+        if "VOTOS" in target_df.columns and "PUESTO" in target_df.columns and "ZONA" in target_df.columns:
+            grouped = target_df.groupby(["ZONA", "PUESTO"])["VOTOS"].sum().reset_index()
+            grouped.rename(columns={"PUESTO": "Puesto", "VOTOS": "Votos", "ZONA": "Zona"}, inplace=True)
+        else:
+            return pd.DataFrame(columns=["Puesto", "lat", "lon", "Votos", "historical_strength"])
+        
+        # Geocode with Zone Context
+        grouped["coords"] = grouped.apply(lambda row: self.geocode_station(row["Puesto"], row["Zona"]), axis=1)
+        grouped["lat"] = grouped["coords"].apply(lambda x: x[0])
+        grouped["lon"] = grouped["coords"].apply(lambda x: x[1])
+        
+        # Normalize score
+        max_votes = grouped["Votos"].max()
+        if max_votes > 0:
+            grouped["historical_strength"] = (grouped["Votos"] / max_votes) * 100
+        else:
+            grouped["historical_strength"] = 0
+            
+        return grouped[["Puesto", "lat", "lon", "Votos", "historical_strength"]]
