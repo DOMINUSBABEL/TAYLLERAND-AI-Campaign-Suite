@@ -444,7 +444,7 @@ with tab_map:
             except Exception as e:
                 st.error(f"Error loading CRM: {e}")
                 
-        st_folium(m, width="100%", height=600)
+        st_folium(m, width=1200, height=600, returned_objects=[])
 
 with tab_sim:
     st.markdown("### 🔮 SIMULATION DECK (Functions 11-20)")
@@ -565,11 +565,115 @@ with tab_social:
                 """, unsafe_allow_html=True)
 
 with tab_crm:
-    st.markdown("### 👥 FIELD OPERATIONS")
+    st.markdown("### 👥 FIELD OPERATIONS - CONTACT PRIORITIZATION")
+    
+    # Initialize survey handler
+    from src.survey_handler import AutomatedSurveyHandler
+    survey_mod = AutomatedSurveyHandler()
+    
+    # Load or generate contacts
     if crm_file:
-        st.dataframe(pd.read_csv(crm_file), use_container_width=True)
+        try:
+            crm_df = pd.read_csv(crm_file)
+            # Ensure required columns exist
+            if not {'lat', 'lon', 'name'}.issubset(crm_df.columns):
+                st.error("CRM CSV must include: lat, lon, name")
+                crm_df = survey_mod.generate_mock_data(50)
+            else:
+                # Standardize column names if needed
+                if 'afinidad' not in crm_df.columns and 'afinidad_score' in crm_df.columns:
+                    crm_df.rename(columns={'afinidad_score': 'afinidad'}, inplace=True)
+        except Exception as e:
+            st.error(f"Error loading CRM: {e}")
+            crm_df = survey_mod.generate_mock_data(50)
     else:
-        st.info("Upload CRM Data in Sidebar to Activate Field Ops Module")
+        # Generate mock data
+        crm_df = survey_mod.generate_mock_data(50)
+    
+    # Prioritize contacts using strategic points from targeting brain
+    prioritized_contacts = survey_mod.prioritize_contacts(crm_df, strategic_zones=strategic_points)
+    
+    # Controls
+    col_f1, col_f2, col_f3 = st.columns([1, 1, 2])
+    
+    with col_f1:
+        tier_filter = st.multiselect(
+            "PRIORITY TIER",
+            ["HIGH", "MEDIUM", "LOW"],
+            default=["HIGH", "MEDIUM"]
+        )
+    
+    with col_f2:
+        min_affinity = st.slider("MIN AFFINITY", 0, 100, 0, 5)
+    
+    with col_f3:
+        st.metric("TOTAL CONTACTS", len(prioritized_contacts))
+        st.metric("HIGH PRIORITY", len(prioritized_contacts[prioritized_contacts['priority_tier'] == 'HIGH']))
+    
+    # Filter based on controls
+    filtered_contacts = prioritized_contacts[
+        (prioritized_contacts['priority_tier'].isin(tier_filter)) &
+        (prioritized_contacts['afinidad_score'] >= min_affinity)
+    ]
+    
+    st.markdown("---")
+    
+    # Two-column layout: Map + Contact Table
+    col_map_f, col_table_f = st.columns([2, 1])
+    
+    with col_map_f:
+        st.markdown("#### 🗺️ CONTACT MAP")
+        
+        # Create map
+        m_contacts = folium.Map(location=[6.2442, -75.5812], zoom_start=12, tiles="CartoDB dark_matter")
+        Fullscreen().add_to(m_contacts)
+        
+        # Color coding by priority tier
+        tier_colors = {
+            "HIGH": "#22c55e",
+            "MEDIUM": "#f59e0b",
+            "LOW": "#64748b"
+        }
+        
+        for _, contact in filtered_contacts.iterrows():
+            color = tier_colors.get(contact['priority_tier'], 'gray')
+            folium.CircleMarker(
+                location=[contact['lat'], contact['lon']],
+                radius=8,
+                color=color,
+                fill=True,
+                fill_opacity=0.8,
+                weight=2,
+                popup=f"""
+                    <b>{contact['name']}</b><br>
+                    Phone: {contact['phone']}<br>
+                    Affinity: {contact['afinidad_score']}/100<br>
+                    Priority: {contact['priority_tier']} ({contact['priority_score']:.1f})
+                """
+            ).add_to(m_contacts)
+        
+        st_folium(m_contacts, width=800, height=400, returned_objects=[])
+    
+    with col_table_f:
+        st.markdown("#### 📞 PRIORITY CALL LIST")
+        
+        # Display top contacts
+        call_list = filtered_contacts[['name', 'phone', 'priority_tier', 'priority_score']].head(20)
+        
+        st.dataframe(
+            call_list,
+            use_container_width=True,
+            height=400
+        )
+        
+        # Export button
+        csv = filtered_contacts.to_csv(index=False)
+        st.download_button(
+            label="📥 EXPORT CALL LIST",
+            data=csv,
+            file_name="tayllerand_call_list.csv",
+            mime="text/csv"
+        )
 
 # --- FOOTER ---
 st.markdown("---")
