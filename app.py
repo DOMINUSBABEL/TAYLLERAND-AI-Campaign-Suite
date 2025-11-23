@@ -501,16 +501,68 @@ with tab_control:
         st.metric("Forecast", weather['Forecast'], weather['Turnout Impact'])
 
 with tab_social:
-    st.markdown("### 📡 LIVE INTEL FEED")
-    with st.container(height=600):
-        for _, row in df_social.iterrows():
-            st.markdown(f"""
-            <div style="border-left: 2px solid #00f2ff; padding-left: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.3); animation: fadeIn 1s ease-in;">
-                <div style="color: #00f2ff; font-weight: bold; font-size: 0.9rem;">@{row['user_id']}</div>
-                <div style="color: #cbd5e1; font-size: 0.85rem;">{row['text']}</div>
-                <div style="font-size: 0.7rem; color: #64748b; margin-top: 5px;">SOURCE: VERIFIED • <a href="{row['url']}" style="color: #3b82f6;">LINK</a></div>
-            </div>
-            """, unsafe_allow_html=True)
+    st.markdown("### 📡 LIVE INTEL FEED (NETWORK LISTENER)")
+    
+    # Listener Controls
+    col_s1, col_s2, col_s3 = st.columns([1, 1, 2])
+    
+    with col_s1:
+        active_affinity = st.multiselect(
+            "AFFINITY FILTER", 
+            social_mod.affinities, 
+            default=["URIBISMO", "GENERAL"]
+        )
+        
+    with col_s2:
+        active_topic = st.multiselect(
+            "TOPIC FOCUS", 
+            social_mod.topics,
+            default=["SECURITY", "CAMPAIGN"]
+        )
+        
+    # Fetch Data from Listener
+    # If no filter selected, pass None to get all (or handle empty list)
+    aff_filter = active_affinity if active_affinity else None
+    top_filter = active_topic if active_topic else None
+    
+    feed_data = social_mod.listen(affinity_filter=aff_filter, topic_filter=top_filter)
+    
+    with col_s3:
+        # Visualization: Topic Distribution
+        if not feed_data.empty:
+            chart = alt.Chart(feed_data).mark_arc(innerRadius=50).encode(
+                theta=alt.Theta("count()", stack=True),
+                color=alt.Color("topic", scale={"scheme": "blues"}),
+                tooltip=["topic", "count()"]
+            ).properties(height=150, title="TOPIC DISTRIBUTION")
+            st.altair_chart(chart, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # Feed Display
+    with st.container(height=500):
+        if feed_data.empty:
+            st.info("No signals detected on these frequencies.")
+        else:
+            for _, row in feed_data.iterrows():
+                # Color coding by sentiment
+                border_color = "#22c55e" if row['sentiment'] > 0 else "#ef4444"
+                if row['sentiment'] == 0: border_color = "#94a3b8"
+                
+                st.markdown(f"""
+                <div style="border-left: 3px solid {border_color}; padding-left: 15px; margin-bottom: 20px; background: rgba(10, 20, 40, 0.5); border-radius: 0 5px 5px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #00f2ff; font-weight: bold; font-size: 0.9rem;">{row['user_id']}</span>
+                        <span style="font-size: 0.7rem; color: #64748b; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">{row['affinity']}</span>
+                    </div>
+                    <div style="color: #e0fbfc; font-size: 0.9rem; margin-top: 5px; font-family: 'Rajdhani', sans-serif;">{row['text']}</div>
+                    <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 8px; display: flex; gap: 10px;">
+                        <span>📅 {row['date']}</span>
+                        <span>🏷️ {row['topic']}</span>
+                        <span>❤️ {int(abs(row['sentiment'])*100)}% IMPACT</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
 with tab_crm:
     st.markdown("### 👥 FIELD OPERATIONS")
