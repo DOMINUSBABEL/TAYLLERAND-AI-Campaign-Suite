@@ -169,6 +169,17 @@ def load_modules():
 
 e26_mod, social_mod, brain_mod = load_modules()
 
+# --- CONFIGURATION & CONSTANTS ---
+# Define Specific Targets for E-14 Analysis (Available for Selection)
+candidate_options = [
+    "MARIA FERNANDA CABAL",
+    "CARLOS HUMBERTO GARCIA",
+    "JOSE LUIS NOREÑA",
+    "ANDERSON DUQUE",
+    "CENTRO DEMOCRATICO", # For Logo/Party
+    "CANDIDATO 1" # Head of List
+]
+
 # --- SIDEBAR: COMMAND DECK ---
 with st.sidebar:
     st.markdown("## 🦅 TAYLLERAND_OS `v3.0`")
@@ -183,7 +194,7 @@ with st.sidebar:
     st.markdown("### 🎯 TARGET LOCK")
     
     # Fixed: Use Selectbox with candidates actually in the data
-    target_candidate = st.selectbox("SELECT CANDIDATE", ["GUSTAVO PETRO", "FEDERICO GUTIERREZ", "MARIA FERNANDA CABAL"])
+    target_candidate = st.selectbox("SELECT CANDIDATE", candidate_options)
     
     st.markdown("---")
     st.markdown("### 🎚️ STRATEGIC PARAMETERS")
@@ -203,18 +214,34 @@ with st.sidebar:
     st.markdown("<div style='text-align: center; font-family: Share Tech Mono; color: #475569;'>SECURE CONNECTION ESTABLISHED</div>", unsafe_allow_html=True)
 
 # --- DATA PROCESSING ENGINE ---
+# Use the selected candidate plus the full list for processing context
+specific_targets = list(set([target_candidate] + candidate_options))
+
 # 1. Load Real Data (or Demo)
 if uploaded_file:
     raw_df = e26_mod.load_data_from_csv(uploaded_file)
-    df_history = e26_mod.process_data(raw_df, target_candidate)
+    df_history = e26_mod.process_data(raw_df, specific_targets)
     data_source_label = "OFFICIAL UPLOAD"
     is_demo = False
 else:
     # Load High-Fidelity Preload by default
     raw_df = e26_mod.load_demo_data()
-    df_history = e26_mod.process_data(raw_df, target_candidate)
+    df_history = e26_mod.process_data(raw_df, specific_targets)
     data_source_label = "PRELOADED OFFICIAL"
     is_demo = True
+
+# --- SUMMARY TABLE FOR SPECIFIC CANDIDATES ---
+st.markdown("### 📋 CANDIDATE SUMMARY")
+summary_data = []
+for t in specific_targets:
+    col_name = f"Votos_{t.replace(' ', '_')}"
+    if col_name in df_history.columns:
+        total_votes_t = df_history[col_name].sum()
+        summary_data.append({"CANDIDATE": t, "TOTAL VOTES": total_votes_t})
+    else:
+         summary_data.append({"CANDIDATE": t, "TOTAL VOTES": 0})
+
+st.dataframe(pd.DataFrame(summary_data), use_container_width=True)
 
 # 2. Load Verified Social (Static/Real)
 df_social = social_mod.generate_verified_feed()
@@ -278,6 +305,10 @@ with tab_map:
             "Donor Propensity (Fx 29)"
         ])
         
+        # Sub-selector for Vote Density
+        if layer_select == "Vote Density (Consolidation)":
+            density_target = st.selectbox("SELECT DENSITY TARGET", specific_targets, index=0)
+        
         st.markdown("#### ⚠️ ALERTS")
         if is_demo:
             st.markdown("""<div class="alert-box">DEMO MODE ACTIVE<br>Using Reconstructed Data</div>""", unsafe_allow_html=True)
@@ -292,22 +323,34 @@ with tab_map:
         if not synthesized_data.empty:
             
             if layer_select == "Vote Density (Consolidation)":
-                # Blue Heatmap for Votes
-                heat_data = synthesized_data[['lat', 'lon', 'historical_strength']].values.tolist()
-                HeatMap(heat_data, radius=25, blur=15, gradient={0.4: '#1e3a8a', 0.7: '#3b82f6', 1.0: '#93c5fd'}, name="Votes").add_to(m)
+                # Dynamic Heatmap based on selection
+                target_col = f"Votos_{density_target.replace(' ', '_')}"
                 
-                # Vote Bubbles
-                for _, row in synthesized_data.iterrows():
-                    if row['historical_strength'] > 0:
-                        folium.CircleMarker(
-                            location=[row['lat'], row['lon']],
-                            radius=row['historical_strength'] / 10 + 2,
-                            color='#3b82f6',
-                            fill=True,
-                            fill_opacity=0.6,
-                            weight=1,
-                            popup=f"{row['Puesto']}: {row['Votos']} votes"
-                        ).add_to(m)
+                # Check if column exists (it should)
+                if target_col in synthesized_data.columns:
+                    # Filter out zero votes for cleaner map
+                    heat_df = synthesized_data[synthesized_data[target_col] > 0]
+                    
+                    # Normalize for this specific target for visualization
+                    max_val = heat_df[target_col].max()
+                    if max_val > 0:
+                        heat_data = heat_df[['lat', 'lon', target_col]].values.tolist()
+                        # Weight the heatmap by votes
+                        HeatMap(heat_data, radius=25, blur=15, gradient={0.4: '#1e3a8a', 0.7: '#3b82f6', 1.0: '#93c5fd'}, name=density_target).add_to(m)
+                        
+                        # Vote Bubbles
+                        for _, row in heat_df.iterrows():
+                            folium.CircleMarker(
+                                location=[row['lat'], row['lon']],
+                                radius=row[target_col] / max_val * 20 + 2, # Dynamic radius
+                                color='#3b82f6',
+                                fill=True,
+                                fill_opacity=0.6,
+                                weight=1,
+                                popup=f"<b>{row['Puesto']}</b><br>{density_target}: {row[target_col]} votes"
+                            ).add_to(m)
+                else:
+                    st.warning(f"No data found for {density_target}")
                         
             elif layer_select == "Growth Potential (Expansion)":
                 # Red Heatmap for Growth

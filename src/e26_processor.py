@@ -113,48 +113,60 @@ class E26Processor:
             print(f"Error loading preload data: {e}")
             return pd.DataFrame()
 
-    def process_data(self, df, target_candidate=None):
+    def process_data(self, df, target_candidates=None):
         """
-        Aggregates votes by Puesto.
-        If target_candidate is provided, filters for that candidate.
+        Aggregates votes by Puesto for a list of target candidates.
+        Returns a DataFrame with columns: Puesto, lat, lon, Votos_Total, and Votos_{Candidate} for each target.
         """
         if df.empty:
-            return pd.DataFrame(columns=["Puesto", "lat", "lon", "Votos", "historical_strength"])
+            return pd.DataFrame()
             
-        # Normalize columns for processing
+        # Normalize columns
         df.columns = [c.upper() for c in df.columns]
         
-        # Filter if needed
-        if target_candidate:
-            target_upper = target_candidate.upper()
-            if "CANDIDATO" in df.columns:
-                # Fuzzy match or exact match
-                target_df = df[df["CANDIDATO"].str.contains(target_upper, na=False)].copy()
-            else:
-                target_df = df.copy()
-        else:
-            target_df = df.copy()
-            
-        if target_df.empty:
-             return pd.DataFrame(columns=["Puesto", "lat", "lon", "Votos", "historical_strength"])
+        if "VOTOS" not in df.columns or "PUESTO" not in df.columns:
+            return pd.DataFrame()
 
-        # Group by ZONA and PUESTO to keep location context
-        if "VOTOS" in target_df.columns and "PUESTO" in target_df.columns and "ZONA" in target_df.columns:
-            grouped = target_df.groupby(["ZONA", "PUESTO"])["VOTOS"].sum().reset_index()
-            grouped.rename(columns={"PUESTO": "Puesto", "VOTOS": "Votos", "ZONA": "Zona"}, inplace=True)
-        else:
-            return pd.DataFrame(columns=["Puesto", "lat", "lon", "Votos", "historical_strength"])
-        
-        # Geocode with Zone Context
-        grouped["coords"] = grouped.apply(lambda row: self.geocode_station(row["Puesto"], row["Zona"]), axis=1)
-        grouped["lat"] = grouped["coords"].apply(lambda x: x[0])
-        grouped["lon"] = grouped["coords"].apply(lambda x: x[1])
-        
-        # Normalize score
-        max_votes = grouped["Votos"].max()
-        if max_votes > 0:
-            grouped["historical_strength"] = (grouped["Votos"] / max_votes) * 100
-        else:
-            grouped["historical_strength"] = 0
+        # Default targets if none provided
+        if not target_candidates:
+            target_candidates = ["MARIA FERNANDA CABAL"]
             
-        return grouped[["Puesto", "lat", "lon", "Votos", "historical_strength"]]
+        # 1. Base Aggregation (Total Votes per Puesto)
+        base_group = df.groupby(["ZONA", "PUESTO"])["VOTOS"].sum().reset_index()
+        base_group.rename(columns={"PUESTO": "Puesto", "VOTOS": "Votos_Total", "ZONA": "Zona"}, inplace=True)
+        
+        # 2. Target Specific Aggregation
+        for target in target_candidates:
+            target_upper = target.upper()
+            # Filter for this specific candidate
+            if "CANDIDATO" in df.columns:
+                # Flexible matching
+                mask = df["CANDIDATO"].str.contains(target_upper, na=False)
+                target_votes = df[mask].groupby(["ZONA", "PUESTO"])["VOTOS"].sum().reset_index()
+                
+                # Merge into base
+                col_name = f"Votos_{target.replace(' ', '_')}"
+                base_group = pd.merge(base_group, target_votes, left_on=["Zona", "Puesto"], right_on=["ZONA", "PUESTO"], how="left")
+                base_group.drop(columns=["ZONA", "PUESTO"], inplace=True)
+                base_group.rename(columns={"VOTOS": col_name}, inplace=True)
+                base_group[col_name] = base_group[col_name].fillna(0)
+            else:
+                base_group[f"Votos_{target.replace(' ', '_')}"] = 0
+
+        # 3. Geocode
+        base_group["coords"] = base_group.apply(lambda row: self.geocode_station(row["Puesto"], row["Zona"]), axis=1)
+        base_group["lat"] = base_group["coords"].apply(lambda x: x[0])
+        base_group["lon"] = base_group["coords"].apply(lambda x: x[1])
+        
+        # 4. Calculate Historical Strength (based on the first target in the list as 'primary')
+        primary_col = f"Votos_{target_candidates[0].replace(' ', '_')}"
+        max_votes = base_group[primary_col].max()
+        if max_votes > 0:
+            base_group["historical_strength"] = (base_group[primary_col] / max_votes) * 100
+        else:
+            base_group["historical_strength"] = 0
+            
+        # Backward Compatibility
+        base_group["Votos"] = base_group["Votos_Total"]
+            
+        return base_group
