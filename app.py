@@ -23,7 +23,7 @@ from src.targeting_brain import TargetingBrain
 # Page Config
 st.set_page_config(
     page_title="TAYLLERAND | SIGLO XXIII",
-    page_icon="🦅",
+    page_icon="logo.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -31,12 +31,12 @@ st.set_page_config(
 # --- SCI-FI / CYBERPUNK UI THEME & ANIMATIONS ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&family=Inter:wght@300;400;600&display=swap');
 
     /* ANIMATIONS */
     @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     @keyframes slideInLeft {
         from { transform: translateX(-20px); opacity: 0; }
@@ -47,12 +47,17 @@ st.markdown("""
         50% { box-shadow: 0 0 20px #00f2ff; }
         100% { box-shadow: 0 0 5px #00f2ff; }
     }
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+        100% { transform: translateY(0px); }
+    }
 
     /* GLOBAL THEME */
     .stApp {
         background-color: #02040a; /* Deep Space Black */
         color: #e0fbfc;
-        font-family: 'Rajdhani', sans-serif;
+        font-family: 'Inter', sans-serif; /* Better readability */
     }
 
     /* HEADERS */
@@ -77,17 +82,18 @@ st.markdown("""
         background: rgba(10, 20, 40, 0.7);
         border: 1px solid #00f2ff;
         border-left: 4px solid #00f2ff;
-        border-radius: 0px; /* Sharp edges */
+        border-radius: 4px; /* Slightly rounded for modern feel */
         padding: 15px;
         margin-bottom: 10px;
         backdrop-filter: blur(5px);
         transition: all 0.3s ease;
-        animation: fadeIn 1s ease-in-out;
+        animation: fadeIn 0.8s ease-out;
     }
     .hud-card:hover {
-        box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
-        transform: translateX(5px);
+        box-shadow: 0 0 25px rgba(0, 242, 255, 0.4);
+        transform: translateY(-5px) scale(1.02);
         border-color: #fff;
+        background: rgba(10, 20, 40, 0.9);
     }
     .hud-label {
         font-family: 'Share Tech Mono', monospace;
@@ -113,51 +119,80 @@ st.markdown("""
         font-family: 'Share Tech Mono', monospace;
         border-left: 4px solid #ef4444;
         animation: pulseGlow 2s infinite;
+        border-radius: 4px;
     }
 
     /* DATAFRAME STYLING */
     [data-testid="stDataFrame"] {
         border: 1px solid #1e3a8a;
-        border-radius: 0px;
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
     
     /* BUTTONS */
     .stButton button {
-        background-color: transparent;
+        background-color: rgba(0, 242, 255, 0.05);
         border: 1px solid #00f2ff;
         color: #00f2ff;
         font-family: 'Share Tech Mono', monospace;
         text-transform: uppercase;
-        border-radius: 0px;
-        transition: all 0.3s;
+        border-radius: 4px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
     }
     .stButton button:hover {
         background-color: #00f2ff;
         color: #000;
-        box-shadow: 0 0 20px #00f2ff;
+        box-shadow: 0 0 20px #00f2ff, 0 0 40px rgba(0, 242, 255, 0.4);
+        transform: translateY(-2px);
+    }
+    .stButton button:active {
+        transform: translateY(0);
     }
     
     /* TABS */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
+        gap: 8px;
+        background-color: rgba(0,0,0,0.2);
+        padding: 5px;
+        border-radius: 8px;
     }
     .stTabs [data-baseweb="tab"] {
         background-color: transparent;
-        border: 1px solid #1e3a8a;
+        border: none;
         color: #94a3b8;
-        border-radius: 0px;
-        padding: 10px 20px;
+        border-radius: 4px;
+        padding: 8px 16px;
         transition: all 0.3s;
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 600;
     }
     .stTabs [data-baseweb="tab"]:hover {
-        background-color: rgba(0, 242, 255, 0.05);
+        background-color: rgba(0, 242, 255, 0.1);
         color: #fff;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background-color: rgba(0, 242, 255, 0.1);
-        border-color: #00f2ff;
+        background-color: rgba(0, 242, 255, 0.15);
+        border: 1px solid rgba(0, 242, 255, 0.3);
         color: #00f2ff;
-        box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+    }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #02040a; 
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #1e3a8a; 
+        border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #00f2ff; 
     }
 
 </style>
@@ -182,6 +217,7 @@ candidate_options = [
 
 # --- SIDEBAR: COMMAND DECK ---
 with st.sidebar:
+    st.image("logo.png", width=100)
     st.markdown("## 🦅 TAYLLERAND_OS `v3.0`")
     st.markdown("<div style='font-family: Share Tech Mono; color: #00f2ff; font-size: 0.8rem;'>SISTEMA EN LÍNEA // ESPERANDO ENTRADA</div>", unsafe_allow_html=True)
     st.markdown("---")
