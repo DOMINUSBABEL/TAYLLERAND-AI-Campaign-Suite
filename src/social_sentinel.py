@@ -9,8 +9,8 @@ class SocialSentinel:
     Monitors specific affinities, topics, and sentiment across simulated networks.
     """
     def __init__(self):
-        self.affinities = ["URIBISMO", "PETRISMO", "INDEPENDIENTES", "OPPOSITION", "GENERAL"]
-        self.topics = ["SECURITY", "ECONOMY", "CORRUPTION", "PERSONAL", "CAMPAIGN"]
+        self.affinities = ["URIBISMO", "PETRISMO", "INDEPENDIENTES", "OPOSICIÓN", "GENERAL"]
+        self.topics = ["SEGURIDAD", "ECONOMÍA", "CORRUPCIÓN", "PERSONAL", "CAMPAÑA"]
 
     def generate_verified_feed(self):
         """
@@ -32,7 +32,7 @@ class SocialSentinel:
                 "lat": 6.2518, "lon": -75.5636,
                 "type": "OPINION",
                 "affinity": "URIBISMO",
-                "topic": "SECURITY"
+                "topic": "SEGURIDAD"
             },
             {
                 "user_name": "Maria Fernanda Cabal",
@@ -45,7 +45,7 @@ class SocialSentinel:
                 "lat": 6.2093, "lon": -75.5714,
                 "type": "RALLY",
                 "affinity": "URIBISMO",
-                "topic": "CAMPAIGN"
+                "topic": "CAMPAÑA"
             },
             {
                 "user_name": "Abelardo De La Espriella",
@@ -73,7 +73,7 @@ class SocialSentinel:
                 "lat": 6.2451, "lon": -75.5736,
                 "type": "NEWS",
                 "affinity": "PETRISMO",
-                "topic": "POLITICAL"
+                "topic": "POLÍTICA"
             },
             {
                 "user_name": "Daniel Quintero",
@@ -86,7 +86,7 @@ class SocialSentinel:
                 "lat": 6.2442, "lon": -75.5812,
                 "type": "OPINION",
                 "affinity": "PETRISMO",
-                "topic": "CAMPAIGN"
+                "topic": "CAMPAÑA"
             },
 
             # GENERAL / NEWS / SECURITY ALERTS
@@ -101,7 +101,7 @@ class SocialSentinel:
                 "lat": 6.2080, "lon": -75.5680,
                 "type": "SECURITY_ALERT",
                 "affinity": "GENERAL",
-                "topic": "SECURITY"
+                "topic": "SEGURIDAD"
             },
              {
                 "user_name": "El Colombiano",
@@ -114,7 +114,7 @@ class SocialSentinel:
                 "lat": 6.2300, "lon": -75.5900,
                 "type": "NEWS",
                 "affinity": "GENERAL",
-                "topic": "CAMPAIGN"
+                "topic": "CAMPAÑA"
             }
         ]
         
@@ -132,7 +132,7 @@ class SocialSentinel:
                 "lon": -75.6 + random.uniform(0, 0.1),
                 "type": "CITIZEN",
                 "affinity": "INDEPENDIENTES",
-                "topic": "SECURITY"
+                "topic": "SEGURIDAD"
             })
 
         return pd.DataFrame(data)

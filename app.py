@@ -183,26 +183,26 @@ candidate_options = [
 # --- SIDEBAR: COMMAND DECK ---
 with st.sidebar:
     st.markdown("## 🦅 TAYLLERAND_OS `v3.0`")
-    st.markdown("<div style='font-family: Share Tech Mono; color: #00f2ff; font-size: 0.8rem;'>SYSTEM ONLINE // WAITING FOR INPUT</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-family: Share Tech Mono; color: #00f2ff; font-size: 0.8rem;'>SISTEMA EN LÍNEA // ESPERANDO ENTRADA</div>", unsafe_allow_html=True)
     st.markdown("---")
     
-    st.markdown("### 📂 DATA LINK")
-    uploaded_file = st.file_uploader("E-26 DATA STREAM", type=["csv"])
-    crm_file = st.file_uploader("CRM UPLINK (Líderes)", type=["csv"])
+    st.markdown("### 📂 ENLACE DE DATOS")
+    uploaded_file = st.file_uploader("FLUJO DE DATOS E-26", type=["csv"])
+    crm_file = st.file_uploader("ENLACE CRM (Líderes)", type=["csv"])
     
     st.markdown("---")
-    st.markdown("### 🎯 TARGET LOCK")
+    st.markdown("### 🎯 OBJETIVO FIJADO")
     
     # Fixed: Use Selectbox with candidates actually in the data
-    target_candidate = st.selectbox("SELECT CANDIDATE", candidate_options)
+    target_candidate = st.selectbox("SELECCIONAR CANDIDATO", candidate_options)
     
     st.markdown("---")
-    st.markdown("### 🎚️ STRATEGIC PARAMETERS")
+    st.markdown("### 🎚️ PARÁMETROS ESTRATÉGICOS")
     
-    w_security = st.slider("SECURITY WEIGHT", 0.5, 2.0, 1.0, 0.1)
-    w_opinion = st.slider("OPINION WEIGHT", 0.5, 2.0, 1.0, 0.1)
-    w_growth = st.slider("GROWTH FACTOR", 0.5, 2.0, 1.0, 0.1)
-    turnout_factor = st.slider("TURNOUT SIM (Fx 5)", 0.5, 1.5, 1.0, 0.1)
+    w_security = st.slider("PESO SEGURIDAD", 0.5, 2.0, 1.0, 0.1)
+    w_opinion = st.slider("PESO OPINIÓN", 0.5, 2.0, 1.0, 0.1)
+    w_growth = st.slider("FACTOR CRECIMIENTO", 0.5, 2.0, 1.0, 0.1)
+    turnout_factor = st.slider("SIM PARTICIPACIÓN (Fx 5)", 0.5, 1.5, 1.0, 0.1)
     
     weights = {
         'security': w_security,
@@ -211,7 +211,7 @@ with st.sidebar:
     }
     
     st.markdown("---")
-    st.markdown("<div style='text-align: center; font-family: Share Tech Mono; color: #475569;'>SECURE CONNECTION ESTABLISHED</div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align: center; font-family: Share Tech Mono; color: #475569;'>CONEXIÓN SEGURA ESTABLECIDA</div>", unsafe_allow_html=True)
 
 # --- DATA PROCESSING ENGINE ---
 # Use the selected candidate plus the full list for processing context
@@ -221,25 +221,25 @@ specific_targets = list(set([target_candidate] + candidate_options))
 if uploaded_file:
     raw_df = e26_mod.load_data_from_csv(uploaded_file)
     df_history = e26_mod.process_data(raw_df, specific_targets)
-    data_source_label = "OFFICIAL UPLOAD"
+    data_source_label = "CARGA OFICIAL"
     is_demo = False
 else:
     # Load High-Fidelity Preload by default
     raw_df = e26_mod.load_demo_data()
     df_history = e26_mod.process_data(raw_df, specific_targets)
-    data_source_label = "PRELOADED OFFICIAL"
+    data_source_label = "OFICIAL PRECARGADO"
     is_demo = True
 
 # --- SUMMARY TABLE FOR SPECIFIC CANDIDATES ---
-st.markdown("### 📋 CANDIDATE SUMMARY")
+st.markdown("### 📋 RESUMEN DE CANDIDATOS")
 summary_data = []
 for t in specific_targets:
     col_name = f"Votos_{t.replace(' ', '_')}"
     if col_name in df_history.columns:
         total_votes_t = df_history[col_name].sum()
-        summary_data.append({"CANDIDATE": t, "TOTAL VOTES": total_votes_t})
+        summary_data.append({"CANDIDATO": t, "VOTOS TOTALES": total_votes_t})
     else:
-         summary_data.append({"CANDIDATE": t, "TOTAL VOTES": 0})
+         summary_data.append({"CANDIDATO": t, "VOTOS TOTALES": 0})
 
 st.dataframe(pd.DataFrame(summary_data), use_container_width=True)
 
@@ -260,10 +260,10 @@ logistics_route = brain_mod.calculate_optimal_route(synthesized_data)
 campaign_brief = brain_mod.generate_campaign_brief(synthesized_data, strategic_points)
 
 # --- MAIN COMMAND CENTER ---
-st.markdown(f"# 📊 CAMPAIGN INTELLIGENCE // <span style='color:#00f2ff'>{target_candidate}</span>", unsafe_allow_html=True)
+st.markdown(f"# 📊 INTELIGENCIA DE CAMPAÑA // <span style='color:#00f2ff'>{target_candidate}</span>", unsafe_allow_html=True)
 
 # Function 9: Campaign Brief (Collapsible)
-with st.expander("📄 OFFICIAL CAMPAIGN BRIEF (Function 9)", expanded=False):
+with st.expander("📄 INFORME OFICIAL DE CAMPAÑA (Función 9)", expanded=False):
     st.markdown(campaign_brief)
 
 # --- HUD METRICS ---
@@ -276,44 +276,44 @@ points_count = len(strategic_points)
 growth_zones = len([p for p in strategic_points if p['type'] == 'GROWTH'])
 
 with kpi1:
-    st.markdown(f"""<div class="hud-card"><div class="hud-label">PROJECTED VOTES</div><div class="hud-value">{total_votes:,}</div></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div class="hud-card"><div class="hud-label">VOTOS PROYECTADOS</div><div class="hud-value">{total_votes:,}</div></div>""", unsafe_allow_html=True)
 with kpi2:
-    st.markdown(f"""<div class="hud-card"><div class="hud-label">NEWS MENTIONS</div><div class="hud-value">{social_vol}</div></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div class="hud-card"><div class="hud-label">MENCIONES NOTICIAS</div><div class="hud-value">{social_vol}</div></div>""", unsafe_allow_html=True)
 with kpi3:
-    st.markdown(f"""<div class="hud-card"><div class="hud-label">GROWTH ZONES</div><div class="hud-value">{growth_zones}</div></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div class="hud-card"><div class="hud-label">ZONAS DE CRECIMIENTO</div><div class="hud-value">{growth_zones}</div></div>""", unsafe_allow_html=True)
 with kpi4:
-    st.markdown(f"""<div class="hud-card"><div class="hud-label">DATA SOURCE</div><div class="hud-value" style="font-size: 1.5rem;">{data_source_label}</div></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div class="hud-card"><div class="hud-label">FUENTE DE DATOS</div><div class="hud-value" style="font-size: 1.5rem;">{data_source_label}</div></div>""", unsafe_allow_html=True)
 
 # --- MULTI-WINDOW INTERFACE (TABS) ---
-tab_map, tab_sim, tab_control, tab_social, tab_crm = st.tabs(["🗺️ GEOSPATIAL OPS", "🔮 SIMULATION DECK", "🎛️ CONTROL ROOM", "📡 SOCIAL INTEL", "👥 FIELD OPS"])
+tab_map, tab_sim, tab_control, tab_social, tab_crm = st.tabs(["🗺️ OPS GEOSPACIALES", "🔮 PLATAFORMA SIMULACIÓN", "🎛️ SALA DE CONTROL", "📡 INTEL SOCIAL", "👥 OPS DE CAMPO"])
 
 with tab_map:
-    st.markdown("### 🗺️ GEOSPATIAL STRATEGY DECK")
+    st.markdown("### 🗺️ PLATAFORMA DE ESTRATEGIA GEOSPACIAL")
 
     col_map, col_controls = st.columns([3, 1])
 
     with col_controls:
-        st.markdown("#### 📡 LAYER CONTROL")
-        layer_select = st.radio("ACTIVE LAYER", [
-            "Vote Density (Consolidation)", 
-            "Growth Potential (Expansion)", 
-            "Strategy Matrix (Quadrants)",
-            "Voter Elasticity (Swing Zones)",
-            "Sentiment Heatmap (Social)",
-            "Logistics Route (TSP)",
-            "Crisis Heatmap (Fx 16)",
-            "Donor Propensity (Fx 29)"
+        st.markdown("#### 📡 CONTROL DE CAPAS")
+        layer_select = st.radio("CAPA ACTIVA", [
+            "Densidad de Votos (Consolidación)", 
+            "Potencial Crecimiento (Expansión)", 
+            "Matriz Estrategia (Cuadrantes)",
+            "Elasticidad Votante (Zonas Swing)",
+            "Mapa Calor Sentimiento (Social)",
+            "Ruta Logística (TSP)",
+            "Mapa Calor Crisis (Fx 16)",
+            "Propensión Donantes (Fx 29)"
         ])
         
         # Sub-selector for Vote Density
-        if layer_select == "Vote Density (Consolidation)":
-            density_target = st.selectbox("SELECT DENSITY TARGET", specific_targets, index=0)
+        if layer_select == "Densidad de Votos (Consolidación)":
+            density_target = st.selectbox("SELECCIONAR OBJETIVO DENSIDAD", specific_targets, index=0)
         
-        st.markdown("#### ⚠️ ALERTS")
+        st.markdown("#### ⚠️ ALERTAS")
         if is_demo:
-            st.markdown("""<div class="alert-box">DEMO MODE ACTIVE<br>Using Reconstructed Data</div>""", unsafe_allow_html=True)
+            st.markdown("""<div class="alert-box">MODO DEMO ACTIVO<br>Usando Datos Reconstruidos</div>""", unsafe_allow_html=True)
         if synthesized_data.empty:
-            st.markdown("""<div class="alert-box">NO DATA DETECTED<br>Check Candidate Selection</div>""", unsafe_allow_html=True)
+            st.markdown("""<div class="alert-box">NO SE DETECTARON DATOS<br>Verificar Selección Candidato</div>""", unsafe_allow_html=True)
 
     with col_map:
         # MAP RENDERING LOGIC (ROBUST)
@@ -322,7 +322,7 @@ with tab_map:
         
         if not synthesized_data.empty:
             
-            if layer_select == "Vote Density (Consolidation)":
+            if layer_select == "Densidad de Votos (Consolidación)":
                 # Dynamic Heatmap based on selection
                 target_col = f"Votos_{density_target.replace(' ', '_')}"
                 
@@ -347,38 +347,49 @@ with tab_map:
                                 fill=True,
                                 fill_opacity=0.6,
                                 weight=1,
-                                popup=f"<b>{row['Puesto']}</b><br>{density_target}: {row[target_col]} votes"
+                                popup=f"<b>{row['Puesto']}</b><br>{density_target}: {row[target_col]} votos"
                             ).add_to(m)
                 else:
-                    st.warning(f"No data found for {density_target}")
+                    st.warning(f"No se encontraron datos para {density_target}")
                         
-            elif layer_select == "Growth Potential (Expansion)":
+            elif layer_select == "Potencial Crecimiento (Expansión)":
                 # Red Heatmap for Growth
                 if 'growth_potential' in synthesized_data.columns:
                     growth_data = synthesized_data[['lat', 'lon', 'growth_potential']].values.tolist()
-                    HeatMap(growth_data, radius=25, blur=15, gradient={0.4: '#7f1d1d', 0.7: '#dc2626', 1.0: '#fca5a5'}, name="Growth").add_to(m)
+                    HeatMap(growth_data, radius=25, blur=15, gradient={0.4: '#7f1d1d', 0.7: '#dc2626', 1.0: '#fca5a5'}, name="Crecimiento").add_to(m)
             
-            elif layer_select == "Strategy Matrix (Quadrants)":
+            elif layer_select == "Matriz Estrategia (Cuadrantes)":
                 # Color-coded markers
                 colors = {'STRONGHOLD': '#22c55e', 'BATTLEGROUND': '#f59e0b', 'OPPORTUNITY': '#ef4444', 'OBSERVATION': '#64748b'}
+                
+                # Translation map for display
+                strat_map = {
+                    'STRONGHOLD': 'BASTIÓN',
+                    'BATTLEGROUND': 'CAMPO DE BATALLA',
+                    'OPPORTUNITY': 'OPORTUNIDAD',
+                    'OBSERVATION': 'OBSERVACIÓN'
+                }
+                
                 for _, row in synthesized_data.iterrows():
                     strat = row.get('strategy_class', 'OBSERVATION')
+                    strat_display = strat_map.get(strat, strat)
+                    
                     folium.CircleMarker(
                         location=[row['lat'], row['lon']],
                         radius=6,
                         color=colors.get(strat, 'gray'),
                         fill=True,
                         fill_opacity=0.9,
-                        popup=f"<b>{row['Puesto']}</b><br>Strategy: {strat}<br>Votes: {row['Votos']}"
+                        popup=f"<b>{row['Puesto']}</b><br>Estrategia: {strat_display}<br>Votos: {row['Votos']}"
                     ).add_to(m)
 
-            elif layer_select == "Voter Elasticity (Swing Zones)":
+            elif layer_select == "Elasticidad Votante (Zonas Swing)":
                 # Purple Heatmap
                 if 'elasticity' in synthesized_data.columns:
                     elasticity_data = synthesized_data[['lat', 'lon', 'elasticity']].values.tolist()
-                    HeatMap(elasticity_data, radius=30, blur=20, gradient={0.4: '#581c87', 0.7: '#a855f7', 1.0: '#e9d5ff'}, name="Elasticity").add_to(m)
+                    HeatMap(elasticity_data, radius=30, blur=20, gradient={0.4: '#581c87', 0.7: '#a855f7', 1.0: '#e9d5ff'}, name="Elasticidad").add_to(m)
 
-            elif layer_select == "Sentiment Heatmap (Social)":
+            elif layer_select == "Mapa Calor Sentimiento (Social)":
                 # Green/Red Heatmap
                 if 'sentiment_score' in synthesized_data.columns:
                     for _, row in synthesized_data.iterrows():
@@ -390,10 +401,10 @@ with tab_map:
                                 color=color,
                                 fill=True,
                                 fill_opacity=0.5,
-                                popup=f"Sentiment Score: {row['sentiment_score']}"
+                                popup=f"Puntaje Sentimiento: {row['sentiment_score']}"
                             ).add_to(m)
                             
-            elif layer_select == "Logistics Route (TSP)":
+            elif layer_select == "Ruta Logística (TSP)":
                 # Function 8: Draw Route
                 if logistics_route:
                     points = [[p['lat'], p['lon']] for p in logistics_route]
@@ -401,21 +412,21 @@ with tab_map:
                     for p in logistics_route:
                         folium.Marker(
                             [p['lat'], p['lon']], 
-                            popup=f"STOP {p['order']}: {p['location']}", 
+                            popup=f"PARADA {p['order']}: {p['location']}", 
                             icon=folium.Icon(color='blue', icon='road', prefix='fa')
                         ).add_to(m)
             
-            elif layer_select == "Crisis Heatmap (Fx 16)":
+            elif layer_select == "Mapa Calor Crisis (Fx 16)":
                 # Orange Heatmap
                 synthesized_data = brain_mod.generate_crisis_heatmap(synthesized_data)
                 crisis_data = synthesized_data[['lat', 'lon', 'crisis_risk']].values.tolist()
                 HeatMap(crisis_data, radius=30, blur=20, gradient={0.4: '#f97316', 0.7: '#ea580c', 1.0: '#c2410c'}, name="Crisis").add_to(m)
 
-            elif layer_select == "Donor Propensity (Fx 29)":
+            elif layer_select == "Propensión Donantes (Fx 29)":
                 # Gold Heatmap
                 synthesized_data = brain_mod.map_donor_propensity(synthesized_data)
                 donor_data = synthesized_data[['lat', 'lon', 'donor_score']].values.tolist()
-                HeatMap(donor_data, radius=25, blur=15, gradient={0.4: '#facc15', 0.7: '#eab308', 1.0: '#ca8a04'}, name="Donors").add_to(m)
+                HeatMap(donor_data, radius=25, blur=15, gradient={0.4: '#facc15', 0.7: '#eab308', 1.0: '#ca8a04'}, name="Donantes").add_to(m)
 
             # Strategic Points (Always Visible)
             for point in strategic_points:
@@ -436,88 +447,88 @@ with tab_map:
                             location=[row['lat'], row['lon']],
                             icon=folium.Icon(color='purple', icon='user', prefix='fa'),
                             tooltip=f"LÍDER: {row['name']}",
-                            popup=f"<b>{row['name']}</b><br>Role: {row.get('role', 'N/A')}"
+                            popup=f"<b>{row['name']}</b><br>Rol: {row.get('role', 'N/A')}"
                         ).add_to(m)
-                    st.success(f"Loaded {len(df_crm)} CRM contacts.")
+                    st.success(f"Cargados {len(df_crm)} contactos CRM.")
                 else:
-                    st.error("CRM CSV missing columns: lat, lon, name")
+                    st.error("CSV CRM falta columnas: lat, lon, name")
             except Exception as e:
                 st.error(f"Error loading CRM: {e}")
                 
         st_folium(m, width=1200, height=600, returned_objects=[])
 
 with tab_sim:
-    st.markdown("### 🔮 SIMULATION DECK (Functions 11-20)")
+    st.markdown("### 🔮 PLATAFORMA SIMULACIÓN (Funciones 11-20)")
     
     sim_col1, sim_col2 = st.columns(2)
     with sim_col1:
-        st.markdown("#### 📈 COMPARATIVE GROWTH (Fx 11)")
+        st.markdown("#### 📈 CRECIMIENTO COMPARATIVO (Fx 11)")
         synthesized_data = brain_mod.calculate_comparative_growth(synthesized_data)
         st.line_chart(synthesized_data.set_index('Puesto')['growth_velocity'].head(20))
         
-        st.markdown("#### 🌪️ DIGITAL TWIN (Fx 13)")
+        st.markdown("#### 🌪️ GEMELO DIGITAL (Fx 13)")
         synthesized_data = brain_mod.run_digital_twin(synthesized_data)
         st.bar_chart(synthesized_data['win_probability'].head(10))
 
     with sim_col2:
-        st.markdown("#### 🤝 COALITION BUILDER (Fx 19)")
+        st.markdown("#### 🤝 CONSTRUCTOR COALICIÓN (Fx 19)")
         synthesized_data = brain_mod.build_coalition(synthesized_data)
-        st.metric("Coalition Boost", "+15%", "Votes")
+        st.metric("Impulso Coalición", "+15%", "Votos")
         
-        st.markdown("#### 🏆 VICTORY PATH (Fx 20)")
+        st.markdown("#### 🏆 CAMINO A LA VICTORIA (Fx 20)")
         victory_path = brain_mod.generate_victory_path(synthesized_data)
         st.dataframe(victory_path, use_container_width=True)
 
 with tab_control:
-    st.markdown("### 🎛️ CONTROL ROOM (Functions 21-30)")
+    st.markdown("### 🎛️ SALA DE CONTROL (Funciones 21-30)")
     
     c_col1, c_col2, c_col3 = st.columns(3)
     
     with c_col1:
-        st.markdown("#### 🎭 PERSONA GEN (Fx 21)")
+        st.markdown("#### 🎭 GEN PERSONAS (Fx 21)")
         persona = brain_mod.generate_personas(synthesized_data)
         st.json(persona)
         
-        st.markdown("#### 🦠 VIRAL LOOP (Fx 22)")
+        st.markdown("#### 🦠 BUCLE VIRAL (Fx 22)")
         viral_data = brain_mod.simulate_viral_loop()
         st.line_chart(viral_data.set_index('Day'))
 
     with c_col2:
-        st.markdown("#### 💸 BUDGET BURN (Fx 25)")
+        st.markdown("#### 💸 GASTO PRESUPUESTO (Fx 25)")
         budget_data = brain_mod.forecast_budget_burn()
         st.area_chart(budget_data.set_index('Week')['Spend'])
         
-        st.markdown("#### 🎮 GOTV GAMIFICATION (Fx 26)")
+        st.markdown("#### 🎮 GAMIFICACIÓN GOTV (Fx 26)")
         gotv_data = brain_mod.gamify_gotv()
         st.dataframe(gotv_data, use_container_width=True)
 
     with c_col3:
-        st.markdown("#### 🕵️ OPPOSITION INTEL (Fx 24)")
+        st.markdown("#### 🕵️ INTEL OPOSICIÓN (Fx 24)")
         opp_data = brain_mod.get_opposition_intel()
         st.table(opp_data)
         
-        st.markdown("#### 🌦️ WEATHER IMPACT (Fx 27)")
+        st.markdown("#### 🌦️ IMPACTO CLIMA (Fx 27)")
         weather = brain_mod.correlate_weather()
-        st.metric("Forecast", weather['Forecast'], weather['Turnout Impact'])
+        st.metric("Pronóstico", weather['Forecast'], weather['Turnout Impact'])
 
 with tab_social:
-    st.markdown("### 📡 LIVE INTEL FEED (NETWORK LISTENER)")
+    st.markdown("### 📡 ALIMENTACIÓN INTEL EN VIVO (ESCUCHA DE RED)")
     
     # Listener Controls
     col_s1, col_s2, col_s3 = st.columns([1, 1, 2])
     
     with col_s1:
         active_affinity = st.multiselect(
-            "AFFINITY FILTER", 
+            "FILTRO AFINIDAD", 
             social_mod.affinities, 
             default=["URIBISMO", "GENERAL"]
         )
         
     with col_s2:
         active_topic = st.multiselect(
-            "TOPIC FOCUS", 
+            "ENFOQUE TEMA", 
             social_mod.topics,
-            default=["SECURITY", "CAMPAIGN"]
+            default=["SEGURIDAD", "CAMPAÑA"]
         )
         
     # Fetch Data from Listener
@@ -534,7 +545,7 @@ with tab_social:
                 theta=alt.Theta("count()", stack=True),
                 color=alt.Color("topic", scale={"scheme": "blues"}),
                 tooltip=["topic", "count()"]
-            ).properties(height=150, title="TOPIC DISTRIBUTION")
+            ).properties(height=150, title="DISTRIBUCIÓN TEMAS")
             st.altair_chart(chart, use_container_width=True)
     
     st.markdown("---")
@@ -542,7 +553,7 @@ with tab_social:
     # Feed Display
     with st.container(height=500):
         if feed_data.empty:
-            st.info("No signals detected on these frequencies.")
+            st.info("No se detectaron señales en estas frecuencias.")
         else:
             for _, row in feed_data.iterrows():
                 # Color coding by sentiment
@@ -559,13 +570,13 @@ with tab_social:
                     <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 8px; display: flex; gap: 10px;">
                         <span>📅 {row['date']}</span>
                         <span>🏷️ {row['topic']}</span>
-                        <span>❤️ {int(abs(row['sentiment'])*100)}% IMPACT</span>
+                        <span>❤️ {int(abs(row['sentiment'])*100)}% IMPACTO</span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
 with tab_crm:
-    st.markdown("### 👥 FIELD OPERATIONS - CONTACT PRIORITIZATION")
+    st.markdown("### 👥 OPERACIONES DE CAMPO - PRIORIZACIÓN CONTACTOS")
     
     # Initialize survey handler
     from src.survey_handler import AutomatedSurveyHandler
@@ -577,14 +588,14 @@ with tab_crm:
             crm_df = pd.read_csv(crm_file)
             # Ensure required columns exist
             if not {'lat', 'lon', 'name'}.issubset(crm_df.columns):
-                st.error("CRM CSV must include: lat, lon, name")
+                st.error("CSV CRM debe incluir: lat, lon, name")
                 crm_df = survey_mod.generate_mock_data(50)
             else:
                 # Standardize column names if needed
                 if 'afinidad' not in crm_df.columns and 'afinidad_score' in crm_df.columns:
                     crm_df.rename(columns={'afinidad_score': 'afinidad'}, inplace=True)
         except Exception as e:
-            st.error(f"Error loading CRM: {e}")
+            st.error(f"Error cargando CRM: {e}")
             crm_df = survey_mod.generate_mock_data(50)
     else:
         # Generate mock data
@@ -598,17 +609,17 @@ with tab_crm:
     
     with col_f1:
         tier_filter = st.multiselect(
-            "PRIORITY TIER",
+            "NIVEL PRIORIDAD",
             ["HIGH", "MEDIUM", "LOW"],
             default=["HIGH", "MEDIUM"]
         )
     
     with col_f2:
-        min_affinity = st.slider("MIN AFFINITY", 0, 100, 0, 5)
+        min_affinity = st.slider("AFINIDAD MÍNIMA", 0, 100, 0, 5)
     
     with col_f3:
-        st.metric("TOTAL CONTACTS", len(prioritized_contacts))
-        st.metric("HIGH PRIORITY", len(prioritized_contacts[prioritized_contacts['priority_tier'] == 'HIGH']))
+        st.metric("CONTACTOS TOTALES", len(prioritized_contacts))
+        st.metric("ALTA PRIORIDAD", len(prioritized_contacts[prioritized_contacts['priority_tier'] == 'HIGH']))
     
     # Filter based on controls
     filtered_contacts = prioritized_contacts[
@@ -622,7 +633,7 @@ with tab_crm:
     col_map_f, col_table_f = st.columns([2, 1])
     
     with col_map_f:
-        st.markdown("#### 🗺️ CONTACT MAP")
+        st.markdown("#### 🗺️ MAPA DE CONTACTOS")
         
         # Create map
         m_contacts = folium.Map(location=[6.2442, -75.5812], zoom_start=12, tiles="CartoDB dark_matter")
@@ -646,16 +657,16 @@ with tab_crm:
                 weight=2,
                 popup=f"""
                     <b>{contact['name']}</b><br>
-                    Phone: {contact['phone']}<br>
-                    Affinity: {contact['afinidad_score']}/100<br>
-                    Priority: {contact['priority_tier']} ({contact['priority_score']:.1f})
+                    Tel: {contact['phone']}<br>
+                    Afinidad: {contact['afinidad_score']}/100<br>
+                    Prioridad: {contact['priority_tier']} ({contact['priority_score']:.1f})
                 """
             ).add_to(m_contacts)
         
         st_folium(m_contacts, width=800, height=400, returned_objects=[])
     
     with col_table_f:
-        st.markdown("#### 📞 PRIORITY CALL LIST")
+        st.markdown("#### 📞 LISTA DE LLAMADAS PRIORITARIAS")
         
         # Display top contacts
         call_list = filtered_contacts[['name', 'phone', 'priority_tier', 'priority_score']].head(20)
@@ -669,7 +680,7 @@ with tab_crm:
         # Export button
         csv = filtered_contacts.to_csv(index=False)
         st.download_button(
-            label="📥 EXPORT CALL LIST",
+            label="📥 EXPORTAR LISTA LLAMADAS",
             data=csv,
             file_name="tayllerand_call_list.csv",
             mime="text/csv"
@@ -677,4 +688,4 @@ with tab_crm:
 
 # --- FOOTER ---
 st.markdown("---")
-st.markdown("<center style='font-family: Share Tech Mono; color: #475569; font-size: 0.8rem;'>TAYLLERAND SYSTEM v3.0 | CLASSIFIED | AUTHORIZED EYES ONLY</center>", unsafe_allow_html=True)
+st.markdown("<center style='font-family: Share Tech Mono; color: #475569; font-size: 0.8rem;'>TAYLLERAND SYSTEM v3.0 | CLASIFICADO | SOLO OJOS AUTORIZADOS</center>", unsafe_allow_html=True)

@@ -106,7 +106,7 @@ class TargetingBrain:
             if remaining_budget >= activation_cost and row['strategy_class'] in ['OPPORTUNITY', 'BATTLEGROUND']:
                 allocations.append({
                     "Puesto": row['Puesto'],
-                    "Action": "ACTIVATE TEAM",
+                    "Action": "ACTIVAR EQUIPO",
                     "Cost": activation_cost,
                     "Expected_Gain": row['growth_potential'] * 10 # Mock gain
                 })
@@ -139,7 +139,7 @@ class TargetingBrain:
                 "location": row['Puesto'],
                 "lat": row['lat'],
                 "lon": row['lon'],
-                "task": "Candidate Visit"
+                "task": "Visita Candidato"
             })
             
         return route
@@ -150,28 +150,28 @@ class TargetingBrain:
         Generates a text summary of the current situation.
         """
         if synthesized_df.empty:
-            return "No data available."
+            return "No hay datos disponibles."
             
         total_votes = synthesized_df['Votos'].sum() if 'Votos' in synthesized_df.columns else 0
         top_stronghold = synthesized_df.sort_values('historical_strength', ascending=False).iloc[0]['Puesto'] if not synthesized_df.empty else "N/A"
         top_opportunity = synthesized_df.sort_values('growth_potential', ascending=False).iloc[0]['Puesto'] if 'growth_potential' in synthesized_df.columns else "N/A"
         
         brief = f"""
-        # 🦅 MORNING CAMPAIGN BRIEF
-        **Date**: {pd.Timestamp.now().strftime('%Y-%m-%d')}
+        # 🦅 INFORME DE CAMPAÑA MATUTINO
+        **Fecha**: {pd.Timestamp.now().strftime('%Y-%m-%d')}
         
-        ## 📊 SITUATION REPORT
-        - **Projected Votes**: {total_votes:,}
-        - **Top Stronghold**: {top_stronghold}
-        - **Top Opportunity**: {top_opportunity}
+        ## 📊 REPORTE DE SITUACIÓN
+        - **Votos Proyectados**: {total_votes:,}
+        - **Mejor Bastión**: {top_stronghold}
+        - **Mejor Oportunidad**: {top_opportunity}
         
-        ## 🎯 STRATEGIC PRIORITIES
+        ## 🎯 PRIORIDADES ESTRATÉGICAS
         """
         
         for p in strategic_points:
             brief += f"- **{p['title']}**: {p['desc']}\n"
             
-        brief += "\n## ⚠️ ACTION ITEMS\n- Review 'Resource Optimization' table.\n- Approve Logistics Route."
+        brief += "\n## ⚠️ ELEMENTOS DE ACCIÓN\n- Revisar tabla 'Optimización de Recursos'.\n- Aprobar Ruta Logística."
         
         return brief
 
@@ -192,8 +192,8 @@ class TargetingBrain:
                 "lat": row['lat'],
                 "lon": row['lon'],
                 "type": "EVENT",
-                "title": "Victory Rally",
-                "desc": f"Stronghold: {row['Puesto']}. Consolidate base.",
+                "title": "Rally de Victoria",
+                "desc": f"Bastión: {row['Puesto']}. Consolidar base.",
                 "icon": "flag",
                 "color": "gold"
             })
@@ -209,8 +209,8 @@ class TargetingBrain:
                     "lat": row['lat'],
                     "lon": row['lon'],
                     "type": "GROWTH",
-                    "title": "Security Opportunity",
-                    "desc": f"High Crime/Low Vote: {row['Puesto']}. Deploy Security Narrative.",
+                    "title": "Oportunidad Seguridad",
+                    "desc": f"Crimen Alto/Voto Bajo: {row['Puesto']}. Desplegar Narrativa Seguridad.",
                     "icon": "crosshairs",
                     "color": "red"
                 })
@@ -335,8 +335,8 @@ class TargetingBrain:
         # Returns a mock persona for the top zone
         return {
             "Zone": "El Poblado",
-            "Persona": "The Conservative Professional",
-            "Interests": ["Security", "Fiscal Responsibility", "Family"],
+            "Persona": "El Profesional Conservador",
+            "Interests": ["Seguridad", "Responsabilidad Fiscal", "Familia"],
             "Channel": "LinkedIn & WhatsApp"
         }
 
@@ -350,13 +350,13 @@ class TargetingBrain:
 
     def model_debate_impact(self):
         """Function 23: Debate Performance Impact"""
-        return {"Topic": "Security", "Sentiment Shift": "+5.2%"}
+        return {"Topic": "Seguridad", "Sentiment Shift": "+5.2%"}
 
     def get_opposition_intel(self):
         """Function 24: Opposition Research Vault"""
         return [
-            {"Candidate": "Petro", "Vulnerability": "Economic Policy", "Risk": "High"},
-            {"Candidate": "Fico", "Vulnerability": "Continuity", "Risk": "Medium"}
+            {"Candidate": "Petro", "Vulnerability": "Política Económica", "Risk": "Alto"},
+            {"Candidate": "Fico", "Vulnerability": "Continuismo", "Risk": "Medio"}
         ]
 
     def forecast_budget_burn(self):
@@ -377,11 +377,11 @@ class TargetingBrain:
 
     def correlate_weather(self):
         """Function 27: Weather Impact Correlation"""
-        return {"Forecast": "Rainy", "Turnout Impact": "-3.5%"}
+        return {"Forecast": "Lluvioso", "Turnout Impact": "-3.5%"}
 
     def track_fake_news(self):
         """Function 28: Fake News Immunization Tracker"""
-        return {"Narrative": "Vote Buying Rumor", "Spread": "High", "Counter-Measure": "Deployed"}
+        return {"Narrative": "Rumor Compra Votos", "Spread": "Alto", "Counter-Measure": "Desplegado"}
 
     def map_donor_propensity(self, df):
         """Function 29: Donor Propensity Heatmap"""
@@ -391,4 +391,4 @@ class TargetingBrain:
 
     def simulate_governance(self):
         """Function 30: Post-Election Governance Simulator"""
-        return {"Coalition Strength": "62%", "Policy Pass Rate": "High"}
+        return {"Coalition Strength": "62%", "Policy Pass Rate": "Alta"}

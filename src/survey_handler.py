@@ -67,7 +67,7 @@ class AutomatedSurveyHandler:
         
         return {
             "id": response_data.get("id"),
-            "name": response_data.get("name", "Unknown"),
+            "name": response_data.get("name", "Desconocido"),
             "phone": response_data.get("phone", "N/A"),
             "afinidad_score": response_data.get("afinidad", 0),
             "lat": lat,
