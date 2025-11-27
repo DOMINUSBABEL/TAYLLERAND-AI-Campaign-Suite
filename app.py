@@ -23,12 +23,160 @@ from src.targeting_brain import TargetingBrain
 # Page Config
 st.set_page_config(
     page_title="TAYLLERAND | SIGLO XXIII",
-    page_icon="logo.png",
+    page_icon="🦅",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- INITIALIZATION ---
+# --- GLOBAL VISUAL THEME (ELECTORAL COMMAND CENTER) ---
+st.markdown("""
+<style>
+    /* 1. VARIABLES & PALETTE */
+    :root {
+        --bg-color: #0f172a; /* Deep Navy */
+        --surface-color: #1e293b; /* Slate */
+        --card-bg: #1e293b;
+        --border-color: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --accent-blue: #3b82f6; /* Campaign Support */
+        --accent-red: #ef4444; /* Opposition */
+        --accent-gold: #f59e0b; /* Alerts/Money */
+        --font-heading: 'Roboto', sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    /* 2. CORE STREAMLIT OVERRIDES */
+    .stApp {
+        background-color: var(--bg-color);
+        color: var(--text-primary);
+        font-family: var(--font-heading);
+    }
+    
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #020617;
+        border-right: 1px solid var(--border-color);
+    }
+    
+    /* Inputs */
+    .stSelectbox, .stTextInput, .stNumberInput, .stSlider {
+        color: var(--text-primary) !important;
+    }
+    div[data-baseweb="select"] > div {
+        background-color: var(--surface-color) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: transparent;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 40px;
+        background-color: var(--surface-color);
+        border-radius: 4px 4px 0 0;
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        padding: 0 20px;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: var(--accent-blue) !important;
+        color: white !important;
+        border-color: var(--accent-blue) !important;
+    }
+
+    /* 3. CUSTOM COMPONENT CLASSES */
+    
+    /* HUD Card */
+    .hud-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .hud-title {
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 5px;
+    }
+    
+    /* Ticker */
+    .ticker-container {
+        display: flex;
+        justify-content: space-between;
+        background-color: #020617;
+        border-bottom: 1px solid var(--border-color);
+        padding: 10px 20px;
+        margin-bottom: 20px;
+        font-family: var(--font-mono);
+    }
+    .ticker-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .ticker-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        margin-bottom: 2px;
+    }
+    .ticker-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    .ticker-value.up { color: var(--accent-blue); }
+    .ticker-value.down { color: var(--accent-red); }
+    
+    /* Order Book / Feed */
+    .order-book-container {
+        background-color: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+    }
+    .order-book-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        padding: 8px 12px;
+        background-color: #0f172a;
+        color: var(--text-secondary);
+        font-weight: bold;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .order-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        padding: 6px 12px;
+        border-bottom: 1px solid #33415533;
+    }
+    .order-row:hover { background-color: #334155; cursor: pointer; }
+    .order-row.ask span:first-child { color: var(--accent-red); }
+    .order-row.bid span:first-child { color: var(--accent-blue); }
+    
+    /* Alerts */
+    .alert-box {
+        background-color: rgba(245, 158, 11, 0.1);
+        border-left: 4px solid var(--accent-gold);
+        color: var(--accent-gold);
+        padding: 10px;
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+    }
+
+</style>
+""", unsafe_allow_html=True)
 def load_modules():
     return E26Processor(), SocialSentinel(), TargetingBrain()
 
@@ -126,29 +274,33 @@ logistics_route = brain_mod.calculate_optimal_route(synthesized_data)
 campaign_brief = brain_mod.generate_campaign_brief(synthesized_data, strategic_points)
 
 # --- MAIN COMMAND CENTER ---
-st.markdown(f"# 📊 INTELIGENCIA DE CAMPAÑA // <span style='color:#2563eb'>{target_candidate}</span>", unsafe_allow_html=True)
+st.markdown(f"# 📊 INTELIGENCIA DE CAMPAÑA // <span style='color:#0ecb81'>{target_candidate}</span>", unsafe_allow_html=True)
 
-# Function 9: Campaign Brief (Collapsible)
-with st.expander("📄 INFORME OFICIAL DE CAMPAÑA (Función 9)", expanded=False):
-    st.markdown(campaign_brief)
-
-# --- HUD METRICS ---
-kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-
-# Use Projected Votes if Turnout != 1.0
-total_votes = synthesized_data['Votos_Projected'].sum() if not synthesized_data.empty else 0
-social_vol = len(df_social)
-points_count = len(strategic_points)
-growth_zones = len([p for p in strategic_points if p['type'] == 'GROWTH'])
-
-with kpi1:
-    st.markdown(f"""<div class="hud-card"><div class="hud-label">VOTOS PROYECTADOS</div><div class="hud-value">{total_votes:,}</div></div>""", unsafe_allow_html=True)
-with kpi2:
-    st.markdown(f"""<div class="hud-card"><div class="hud-label">MENCIONES NOTICIAS</div><div class="hud-value">{social_vol}</div></div>""", unsafe_allow_html=True)
-with kpi3:
-    st.markdown(f"""<div class="hud-card"><div class="hud-label">ZONAS DE CRECIMIENTO</div><div class="hud-value">{growth_zones}</div></div>""", unsafe_allow_html=True)
-with kpi4:
-    st.markdown(f"""<div class="hud-card alert"><div class="hud-label">FUENTE DE DATOS</div><div class="hud-value" style="font-size: 1.5rem;">{data_source_label}</div></div>""", unsafe_allow_html=True)
+# TICKER BAR
+st.markdown(f"""
+<div class="ticker-container">
+    <div class="ticker-item">
+        <span class="ticker-label">VOTOS PROYECTADOS</span>
+        <span class="ticker-value up">{total_votes:,}</span>
+    </div>
+    <div class="ticker-item">
+        <span class="ticker-label">VOLUMEN SOCIAL</span>
+        <span class="ticker-value">{social_vol}</span>
+    </div>
+    <div class="ticker-item">
+        <span class="ticker-label">ZONAS CRECIMIENTO</span>
+        <span class="ticker-value up">+{growth_zones}</span>
+    </div>
+    <div class="ticker-item">
+        <span class="ticker-label">DÍAS RESTANTES</span>
+        <span class="ticker-value">45</span>
+    </div>
+    <div class="ticker-item">
+        <span class="ticker-label">PRESUPUESTO (24H)</span>
+        <span class="ticker-value down">- $12.5M</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # --- MULTI-WINDOW INTERFACE (TABS) ---
 tab_map, tab_sim, tab_control, tab_social, tab_crm = st.tabs(["🗺️ OPS GEOSPACIALES", "🔮 PLATAFORMA SIMULACIÓN", "🎛️ SALA DE CONTROL", "📡 INTEL SOCIAL", "👥 OPS DE CAMPO"])
@@ -380,12 +532,12 @@ with tab_control:
 with tab_social:
     st.markdown("### 📡 INTELIGENCIA SOCIAL AVANZADA")
     
-    # --- LAYOUT: 3 COLUMNS (Feed, Profiler, Message Designer) ---
-    col_feed, col_profile, col_designer = st.columns([1.2, 1, 1])
+    # --- LAYOUT: 3 COLUMNS (Feed/Order Book, Profiler, Message Designer) ---
+    col_feed, col_profile, col_designer = st.columns([1.5, 1, 1])
     
-    # 1. FEED & LISTENER
+    # 1. FEED & LISTENER (ORDER BOOK STYLE)
     with col_feed:
-        st.markdown("#### 👂 ESCUCHA ACTIVA")
+        st.markdown("#### 📖 LIBRO DE ÓRDENES (SOCIAL)")
         
         # Filters
         f_col1, f_col2 = st.columns(2)
@@ -397,74 +549,97 @@ with tab_social:
         # Fetch Data
         feed_data = social_mod.listen(affinity_filter=active_affinity, topic_filter=active_topic)
         
-        # Feed Visualization
+        # Order Book Visualization
         with st.container(height=600):
             if feed_data.empty:
-                st.info("Sin señal.")
+                st.info("Sin datos de mercado.")
             else:
-                for _, row in feed_data.iterrows():
-                    # Dynamic Border Color
-                    b_color = "#22c55e" if row['sentiment'] > 0 else "#ef4444"
-                    if row['sentiment'] == 0: b_color = "#94a3b8"
-                    
-                    # Card HTML
+                st.markdown("""
+                <div class="order-book-container">
+                    <div class="order-book-header">
+                        <span>PRECIO (SENTIMIENTO)</span>
+                        <span>CANTIDAD (INF)</span>
+                        <span>USUARIO</span>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Split into Asks (Negative) and Bids (Positive)
+                asks = feed_data[feed_data['sentiment'] < 0].sort_values('sentiment', ascending=True)
+                bids = feed_data[feed_data['sentiment'] >= 0].sort_values('sentiment', ascending=False)
+                
+                # Render Asks (Red - Top)
+                for _, row in asks.iterrows():
                     st.markdown(f"""
-                    <div style="
-                        border-left: 4px solid {b_color}; 
-                        background: #1e293b; 
-                        padding: 15px; 
-                        margin-bottom: 10px; 
-                        border-radius: 4px;
-                        border: 1px solid #334155;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="color: #f8fafc; font-weight: 700; font-size: 0.95rem;">{row['user_name']}</span>
-                            <span style="font-size: 0.7rem; color: #cbd5e1; background: #334155; padding: 2px 6px; border-radius: 4px;">{row['affinity']}</span>
-                        </div>
-                        <div style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.4; margin-bottom: 10px;">{row['text']}</div>
-                        <div style="display: flex; gap: 10px; font-size: 0.75rem; color: #94a3b8; font-family: 'Roboto Condensed';">
-                            <span>📅 {row['date']}</span>
-                            <span>🏷️ {row['topic']}</span>
-                            <span>⚡ {row.get('influence_score', 0)} INF</span>
-                        </div>
+                    <div class="order-row ask">
+                        <span>{row['sentiment']:.2f} ▼</span>
+                        <span>{row.get('influence_score', 0)}</span>
+                        <span>{row['user_name']}</span>
                     </div>
                     """, unsafe_allow_html=True)
+                    
+                # Spread / Current Price
+                avg_sentiment = feed_data['sentiment'].mean()
+                # Use theme colors: Blue for Positive (Support), Red for Negative (Opposition)
+                price_color = "var(--accent-blue)" if avg_sentiment >= 0 else "var(--accent-red)"
+                st.markdown(f"""
+                <div style="padding: 10px; text-align: center; font-family: var(--font-mono); font-size: 16px; font-weight: bold; color: {price_color}; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background: var(--bg-color);">
+                    {avg_sentiment:.4f} INDEX (AVG)
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Render Bids (Green - Bottom)
+                for _, row in bids.iterrows():
+                    st.markdown(f"""
+                    <div class="order-row bid">
+                        <span>{row['sentiment']:.2f} ▲</span>
+                        <span>{row.get('influence_score', 0)}</span>
+                        <span>{row['user_name']}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                st.markdown("</div>", unsafe_allow_html=True)
 
     # 2. VOTER PROFILER
     with col_profile:
-        st.markdown("#### 👤 PERFILADOR DE OBJETIVOS")
+        st.markdown("#### 👤 PERFILADOR (KYC)")
         
         # User Selection (Simulated from Feed)
         if not feed_data.empty:
-            selected_user_id = st.selectbox("SELECCIONAR OBJETIVO", feed_data['user_id'].unique())
+            selected_user_id = st.selectbox("SELECCIONAR USUARIO", feed_data['user_id'].unique())
             
             if selected_user_id:
                 profile = social_mod.generate_voter_profile(selected_user_id)
                 
-                # Profile Card
+                # Profile Card (Electoral Command Style)
                 st.markdown(f"""
-                <div class="hud-card" style="border-top: 4px solid #f59e0b;">
-                    <div style="text-align: center; margin-bottom: 15px;">
-                        <div style="font-size: 1.4rem; font-weight: 800; color: #fff;">{profile['Name']}</div>
-                        <div style="color: #94a3b8; font-family: 'Roboto Condensed';">{profile['User ID']}</div>
+                <div class="hud-card">
+                    <div style="text-align: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">{profile['Name']}</div>
+                        <div style="color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.8rem;">ID: {profile['User ID']}</div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.9rem;">
-                        <div><span style="color:#94a3b8; font-weight:700;">AFINIDAD:</span><br>{profile['Affinity']}</div>
-                        <div><span style="color:#94a3b8; font-weight:700;">INFLUENCIA:</span><br>{profile['Influence Score']}/100</div>
-                        <div><span style="color:#94a3b8; font-weight:700;">GUSTOS:</span><br>{profile['Political Taste']}</div>
-                        <div><span style="color:#94a3b8; font-weight:700;">EDAD:</span><br>{profile['Age Group']}</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem; font-family: var(--font-mono);">
+                        <div><span style="color:var(--text-secondary);">AFINIDAD</span><br><span style="color:var(--text-primary);">{profile['Affinity']}</span></div>
+                        <div><span style="color:var(--text-secondary);">SCORE</span><br><span style="color:var(--accent-gold);">{profile['Influence Score']}/100</span></div>
+                        <div><span style="color:var(--text-secondary);">GUSTOS</span><br><span style="color:var(--text-primary);">{profile['Political Taste']}</span></div>
+                        <div><span style="color:var(--text-secondary);">EDAD</span><br><span style="color:var(--text-primary);">{profile['Age Group']}</span></div>
                     </div>
-                    <div style="margin-top: 20px;">
-                        <span style="color:#94a3b8; font-size: 0.8rem; font-weight:700;">INTERESES CLAVE:</span>
-                        <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px;">
-                            {''.join([f'<span style="background:#334155; color:#f1f5f9; padding:4px 10px; border-radius:4px; font-size:0.75rem;">{i}</span>' for i in profile['Primary Interests'].split(', ')])}
+                    <div style="margin-top: 15px;">
+                        <span style="color:var(--text-secondary); font-size: 0.8rem;">INTERESES</span>
+                        <div style="margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px;">
+                            {''.join([f'<span style="background:var(--surface-color); color:var(--text-primary); padding:2px 6px; border-radius:2px; font-size:0.75rem;">{i}</span>' for i in profile['Primary Interests'].split(', ')])}
                         </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
                 # Action Buttons
-                st.button("🎯 AGREGAR A LISTA DE OBJETIVOS", use_container_width=True)
-                st.button("⚠️ MARCAR COMO HOSTIL", use_container_width=True)
+                st.markdown("<br>", unsafe_allow_html=True)
+                c1, c2 = st.columns(2)
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.button("RECLUTAR (LONG)", key="btn_long", use_container_width=True)
+                with c2:
+                    st.button("NEUTRALIZAR (SHORT)", key="btn_short", use_container_width=True)
 
     # 3. MESSAGE DESIGNER
     with col_designer:
