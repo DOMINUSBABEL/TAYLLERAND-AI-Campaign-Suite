@@ -11,14 +11,17 @@ import time
 import src.e26_processor
 import src.social_sentinel
 import src.targeting_brain
+import src.survey_handler
 
 importlib.reload(src.e26_processor)
 importlib.reload(src.social_sentinel)
 importlib.reload(src.targeting_brain)
+importlib.reload(src.survey_handler)
 
 from src.e26_processor import E26Processor
 from src.social_sentinel import SocialSentinel
 from src.targeting_brain import TargetingBrain
+from src.survey_handler import AutomatedSurveyHandler
 
 # Page Config
 st.set_page_config(
@@ -28,289 +31,433 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- GLOBAL VISUAL THEME (ELECTORAL COMMAND CENTER) ---
+# --- GLOBAL VISUAL THEME (TAYLLERAND OS - NEO CLASSICAL) ---
 st.markdown("""
 <style>
-    /* 1. VARIABLES & PALETTE */
+    /* 1. FONTS & IMPORTS */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto+Condensed:wght@300;400;700&family=JetBrains+Mono:wght@400&display=swap');
+
+    /* 2. VARIABLES & PALETTE (TAYLLERAND OS) */
     :root {
-        --bg-color: #0f172a; /* Deep Navy */
-        --surface-color: #1e293b; /* Slate */
-        --card-bg: #1e293b;
-        --border-color: #334155;
-        --text-primary: #f8fafc;
-        --text-secondary: #94a3b8;
-        --accent-blue: #3b82f6; /* Campaign Support */
-        --accent-red: #ef4444; /* Opposition */
-        --accent-gold: #f59e0b; /* Alerts/Money */
-        --font-heading: 'Roboto', sans-serif;
+        --bg-color: #0f172a; /* Deep Navy Background */
+        --surface-color: #1e293b; /* Panel Background */
+        --border-color: #d4af37; /* Metallic Gold Border */
+        --border-dim: #94a3b8; /* Dim Border for non-active */
+        --text-primary: #e2e8f0; /* Off-white */
+        --text-secondary: #94a3b8; /* Slate Text */
+        --accent-gold: #d4af37; /* Primary Accent */
+        --accent-blue: #3b82f6; /* Support/Positive */
+        --accent-red: #ef4444; /* Opposition/Negative */
+        
+        --font-heading: 'Cinzel', serif; /* Neo-Classical Header */
+        --font-body: 'Roboto Condensed', sans-serif; /* Technical Body */
         --font-mono: 'JetBrains Mono', monospace;
     }
 
-    /* 2. CORE STREAMLIT OVERRIDES */
+    /* 3. CORE STREAMLIT OVERRIDES */
     .stApp {
         background-color: var(--bg-color);
         color: var(--text-primary);
-        font-family: var(--font-heading);
+        font-family: var(--font-body);
     }
     
-    /* Sidebar */
-    [data-testid="stSidebar"] {
-        background-color: #020617;
-        border-right: 1px solid var(--border-color);
-    }
+    /* Hide Default Header & Sidebar Toggle */
+    header[data-testid="stHeader"] { display: none; }
     
-    /* Inputs */
-    .stSelectbox, .stTextInput, .stNumberInput, .stSlider {
-        color: var(--text-primary) !important;
-    }
-    div[data-baseweb="select"] > div {
-        background-color: var(--surface-color) !important;
-        border-color: var(--border-color) !important;
-        color: var(--text-primary) !important;
-    }
-    
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: transparent;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 40px;
-        background-color: var(--surface-color);
-        border-radius: 4px 4px 0 0;
-        border: 1px solid var(--border-color);
-        color: var(--text-secondary);
-        padding: 0 20px;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: var(--accent-blue) !important;
-        color: white !important;
-        border-color: var(--accent-blue) !important;
-    }
+    /* Sidebar (Hidden/Custom) */
+    [data-testid="stSidebar"] { display: none; }
 
-    /* 3. CUSTOM COMPONENT CLASSES */
+    /* 4. CUSTOM COMPONENTS */
     
-    /* HUD Card */
-    .hud-card {
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        padding: 15px;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .hud-title {
-        font-family: var(--font-heading);
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--text-secondary);
-        margin-bottom: 10px;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 5px;
-    }
-    
-    /* Ticker */
-    .ticker-container {
+    /* Top Navigation Bar */
+    .top-nav {
         display: flex;
+        align-items: center;
         justify-content: space-between;
         background-color: #020617;
-        border-bottom: 1px solid var(--border-color);
-        padding: 10px 20px;
+        border-bottom: 3px solid var(--accent-gold);
+        padding: 10px 30px;
         margin-bottom: 20px;
-        font-family: var(--font-mono);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.8);
     }
-    .ticker-item {
+    .nav-brand {
         display: flex;
-        flex-direction: column;
         align-items: center;
+        gap: 15px;
+        font-family: var(--font-heading);
+        font-size: 1.8rem;
+        color: var(--accent-gold);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
-    .ticker-label {
-        font-size: 0.7rem;
+    .nav-links {
+        display: flex;
+        gap: 30px;
+    }
+    .nav-item {
+        font-family: var(--font-heading);
+        font-size: 1.0rem;
         color: var(--text-secondary);
-        margin-bottom: 2px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: color 0.3s;
     }
-    .ticker-value {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-primary);
+    .nav-item:hover, .nav-item.active {
+        color: var(--accent-gold);
+        text-decoration: underline;
+        text-underline-offset: 5px;
     }
-    .ticker-value.up { color: var(--accent-blue); }
-    .ticker-value.down { color: var(--accent-red); }
     
-    /* Order Book / Feed */
-    .order-book-container {
+    /* Panel Containers (Neo-Classical) */
+    .panel-container {
         background-color: var(--surface-color);
         border: 1px solid var(--border-color);
         border-radius: 4px;
+        padding: 0;
+        height: 100%;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .panel-header {
+        background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
+        padding: 10px 15px;
+        border-bottom: 1px solid var(--border-color);
+        font-family: var(--font-heading);
+        color: var(--accent-gold);
+        font-size: 1.1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .panel-content {
+        padding: 15px;
+    }
+    
+    /* Roster Item */
+    .roster-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        border-bottom: 1px solid #334155;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .roster-item:hover { background-color: #334155; }
+    .roster-item.active { background-color: rgba(212, 175, 55, 0.1); border-left: 3px solid var(--accent-gold); }
+    
+    /* Profile Header */
+    .profile-header {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .profile-img {
+        width: 100px;
+        height: 100px;
+        border: 2px solid var(--accent-gold);
+        border-radius: 4px;
+        background-color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    .profile-info h1 {
+        font-family: var(--font-heading);
+        color: var(--text-primary);
+        margin: 0;
+        font-size: 1.8rem;
+    }
+    .profile-meta {
         font-family: var(--font-mono);
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+    
+    /* Metrics Grid */
+    .metric-box {
+        background-color: #0f172a;
+        border: 1px solid #334155;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .metric-label {
         font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+    }
+    .metric-val {
+        font-size: 1.4rem;
+        color: var(--accent-gold);
+        font-family: var(--font-heading);
+    }
+
+    /* Alert Box */
+    .alert-box {
+        background-color: #334155;
+        border-left: 4px solid var(--accent-red);
+        padding: 10px;
+        margin-top: 15px;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        font-family: var(--font-mono);
+    }
+
+    /* Order Book Styles */
+    .order-book-container {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        overflow: hidden;
     }
     .order-book-header {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        padding: 8px 12px;
+        grid-template-columns: 1fr 1fr 1.5fr;
         background-color: #0f172a;
-        color: var(--text-secondary);
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border-dim);
         font-weight: bold;
-        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        text-transform: uppercase;
     }
     .order-row {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        padding: 6px 12px;
-        border-bottom: 1px solid #33415533;
+        grid-template-columns: 1fr 1fr 1.5fr;
+        padding: 6px 10px;
+        border-bottom: 1px solid #334155;
     }
-    .order-row:hover { background-color: #334155; cursor: pointer; }
-    .order-row.ask span:first-child { color: var(--accent-red); }
-    .order-row.bid span:first-child { color: var(--accent-blue); }
-    
-    /* Alerts */
-    .alert-box {
-        background-color: rgba(245, 158, 11, 0.1);
-        border-left: 4px solid var(--accent-gold);
-        color: var(--accent-gold);
-        padding: 10px;
-        font-size: 0.8rem;
-        margin-bottom: 10px;
+    .order-row.ask {
+        color: var(--accent-red);
+    }
+    .order-row.bid {
+        color: var(--accent-blue);
+    }
+    .order-row:nth-child(even) {
+        background-color: #1e293b;
+    }
+    .order-row:hover {
+        background-color: #334155;
+    }
+
+    /* HUD Card for Profiler */
+    .hud-card {
+        background-color: #0f172a;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 15px;
+        margin-top: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
 
 </style>
 """, unsafe_allow_html=True)
-def load_modules():
-    return E26Processor(), SocialSentinel(), TargetingBrain()
 
-e26_mod, social_mod, brain_mod = load_modules()
+def load_modules():
+    return E26Processor(), SocialSentinel(), TargetingBrain(), AutomatedSurveyHandler()
+
+e26_mod, social_mod, brain_mod, survey_mod = load_modules()
 
 # --- CONFIGURATION & CONSTANTS ---
-# Define Specific Targets for E-14 Analysis (Available for Selection)
 candidate_options = [
     "MARIA FERNANDA CABAL",
     "CARLOS HUMBERTO GARCIA",
     "JOSE LUIS NOREÑA",
     "ANDERSON DUQUE",
-    "CENTRO DEMOCRATICO", # For Logo/Party
-    "CANDIDATO 1" # Head of List
+    "CENTRO DEMOCRATICO",
+    "CANDIDATO 1"
 ]
 
-# --- SIDEBAR: COMMAND DECK ---
-with st.sidebar:
-    st.image("logo.png", width=100)
-    st.markdown("## 🦅 TAYLLERAND_OS `v3.0`")
-    st.markdown("<div style='font-family: Roboto Condensed; color: #94a3b8; font-size: 0.8rem;'>SISTEMA EN LÍNEA // ESPERANDO ENTRADA</div>", unsafe_allow_html=True)
-    st.markdown("---")
-    
-    st.markdown("### 📂 ENLACE DE DATOS")
-    uploaded_file = st.file_uploader("FLUJO DE DATOS E-26", type=["csv"])
-    crm_file = st.file_uploader("ENLACE CRM (Líderes)", type=["csv"])
-    
-    st.markdown("---")
-    st.markdown("### 🎯 OBJETIVO FIJADO")
-    
-    # Fixed: Use Selectbox with candidates actually in the data
-    target_candidate = st.selectbox("SELECCIONAR CANDIDATO", candidate_options)
-    
-    st.markdown("---")
-    st.markdown("### 🎚️ PARÁMETROS ESTRATÉGICOS")
-    
-    w_security = st.slider("PESO SEGURIDAD", 0.5, 2.0, 1.0, 0.1)
-    w_opinion = st.slider("PESO OPINIÓN", 0.5, 2.0, 1.0, 0.1)
-    w_growth = st.slider("FACTOR CRECIMIENTO", 0.5, 2.0, 1.0, 0.1)
-    turnout_factor = st.slider("SIM PARTICIPACIÓN (Fx 5)", 0.5, 1.5, 1.0, 0.1)
-    
-    weights = {
-        'security': w_security,
-        'opinion': w_opinion,
-        'growth': w_growth
-    }
-    
-    st.markdown("---")
-    st.markdown("<div style='text-align: center; font-family: Roboto Condensed; color: #64748b;'>CONEXIÓN SEGURA ESTABLECIDA</div>", unsafe_allow_html=True)
+# --- SESSION STATE ---
+if 'selected_candidate' not in st.session_state:
+    st.session_state.selected_candidate = candidate_options[0]
+if 'is_demo' not in st.session_state:
+    st.session_state.is_demo = True
+if 'crm_file' not in st.session_state:
+    st.session_state.crm_file = None
+if 'logistics_route' not in st.session_state:
+    st.session_state.logistics_route = []
+if 'strategic_points' not in st.session_state:
+    st.session_state.strategic_points = []
 
-# --- DATA PROCESSING ENGINE ---
-# Use the selected candidate plus the full list for processing context
-specific_targets = list(set([target_candidate] + candidate_options))
-
-# 1. Load Real Data (or Demo)
-if uploaded_file:
-    raw_df = e26_mod.load_data_from_csv(uploaded_file)
-    df_history = e26_mod.process_data(raw_df, specific_targets)
-    data_source_label = "CARGA OFICIAL"
-    is_demo = False
-else:
-    # Load High-Fidelity Preload by default
-    raw_df = e26_mod.load_demo_data()
-    df_history = e26_mod.process_data(raw_df, specific_targets)
-    data_source_label = "OFICIAL PRECARGADO"
-    is_demo = True
-
-# --- SUMMARY TABLE FOR SPECIFIC CANDIDATES ---
-st.markdown("### 📋 RESUMEN DE CANDIDATOS")
-summary_data = []
-for t in specific_targets:
-    col_name = f"Votos_{t.replace(' ', '_')}"
-    if col_name in df_history.columns:
-        total_votes_t = df_history[col_name].sum()
-        summary_data.append({"CANDIDATO": t, "VOTOS TOTALES": total_votes_t})
-    else:
-         summary_data.append({"CANDIDATO": t, "VOTOS TOTALES": 0})
-
-st.dataframe(pd.DataFrame(summary_data), use_container_width=True)
-
-# 2. Load Verified Social (Static/Real)
-df_social = social_mod.generate_verified_feed()
-
-# 3. Synthesize & Project
-synthesized_data = brain_mod.synthesize(df_history, df_social, weights=weights)
-
-# Apply Advanced Functions (5, 6, 7)
-synthesized_data = brain_mod.simulate_turnout(synthesized_data, turnout_factor)
-synthesized_data = brain_mod.calculate_elasticity(synthesized_data)
-synthesized_data = brain_mod.calculate_sentiment_correlation(synthesized_data, df_social)
-
-strategic_points = brain_mod.generate_strategic_points(synthesized_data)
-resource_plan = brain_mod.optimize_resources(synthesized_data)
-logistics_route = brain_mod.calculate_optimal_route(synthesized_data)
-campaign_brief = brain_mod.generate_campaign_brief(synthesized_data, strategic_points)
-
-# --- MAIN COMMAND CENTER ---
-st.markdown(f"# 📊 INTELIGENCIA DE CAMPAÑA // <span style='color:#0ecb81'>{target_candidate}</span>", unsafe_allow_html=True)
-
-# TICKER BAR
-st.markdown(f"""
-<div class="ticker-container">
-    <div class="ticker-item">
-        <span class="ticker-label">VOTOS PROYECTADOS</span>
-        <span class="ticker-value up">{total_votes:,}</span>
+# --- TOP NAVIGATION (CUSTOM HTML) ---
+st.markdown("""
+<div class="top-nav">
+    <div class="nav-brand">
+        <img src="app/static/logo.png" style="height: 40px;"> <!-- Placeholder for Streamlit image serving -->
+        <span>TAYLLERAND OS v3.5</span>
     </div>
-    <div class="ticker-item">
-        <span class="ticker-label">VOLUMEN SOCIAL</span>
-        <span class="ticker-value">{social_vol}</span>
+    <div class="nav-links">
+        <span class="nav-item active">TABLERO</span>
+        <span class="nav-item">CAMPAÑAS</span>
+        <span class="nav-item">CANDIDATOS</span>
+        <span class="nav-item">ANÁLISIS</span>
+        <span class="nav-item">AJUSTES</span>
     </div>
-    <div class="ticker-item">
-        <span class="ticker-label">ZONAS CRECIMIENTO</span>
-        <span class="ticker-value up">+{growth_zones}</span>
-    </div>
-    <div class="ticker-item">
-        <span class="ticker-label">DÍAS RESTANTES</span>
-        <span class="ticker-value">45</span>
-    </div>
-    <div class="ticker-item">
-        <span class="ticker-label">PRESUPUESTO (24H)</span>
-        <span class="ticker-value down">- $12.5M</span>
+    <div class="nav-user" style="color: var(--accent-gold); font-family: var(--font-heading);">
+        <span style="font-size: 1.2rem;">👤</span> A. TALLEYRAND
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+# --- LAYOUT: 3 COLUMNS (ROSTER | PROFILE | METRICS) ---
+col_roster, col_profile, col_metrics = st.columns([1, 2, 2])
+
+# --- COLUMN 1: CANDIDATE ROSTER ---
+with col_roster:
+    st.markdown("""
+    <div class="panel-container">
+        <div class="panel-header">
+            <span>ROSTER DE CANDIDATOS</span>
+            <span>▼</span>
+        </div>
+        <div class="panel-content" style="padding: 0;">
+    """, unsafe_allow_html=True)
+    
+    # Selection Logic (Simulated Roster)
+    selected_candidate = st.radio("Seleccionar Candidato", candidate_options, label_visibility="collapsed", key="roster_selection")
+    st.session_state.selected_candidate = selected_candidate
+    
+    # Render Roster Items (Visual Only - Selection handled by radio above for functionality)
+    # In a real app, these would be clickable divs triggering state changes
+    st.markdown("</div></div>", unsafe_allow_html=True)
+
+# --- DATA PROCESSING ---
+specific_targets = list(set([st.session_state.selected_candidate] + candidate_options))
+# Load Demo Data
+raw_df = e26_mod.load_demo_data()
+df_history = e26_mod.process_data(raw_df, specific_targets)
+df_social = social_mod.generate_verified_feed()
+synthesized_data = brain_mod.synthesize(df_history, df_social)
+
+# Metrics Calculation
+target_col = f"Votos_{st.session_state.selected_candidate.replace(' ', '_')}"
+total_votes = int(df_history[target_col].sum()) if target_col in df_history.columns else 0
+social_vol = len(df_social)
+growth_zones = len(synthesized_data[synthesized_data['growth_potential'] > 0.7]) if 'growth_potential' in synthesized_data.columns else 0
+
+# --- COLUMN 2: CANDIDATE PROFILE ---
+with col_profile:
+    st.markdown(f"""
+    <div class="panel-container">
+        <div class="panel-header">
+            <span>PERFIL</span>
+            <span style="font-size: 0.8rem; color: #22c55e;">● CAMPAÑA ACTIVA</span>
+        </div>
+        <div class="panel-content">
+            <div class="profile-header">
+                <div class="profile-img">🦅</div>
+                <div class="profile-info">
+                    <h1>{st.session_state.selected_candidate}</h1>
+                    <div class="profile-meta">
+                        PARTIDO: CENTRO DEMOCRATICO<br>
+                        DISTRITO: ANTIOQUIA / MEDELLÍN<br>
+                        ESTADO: INCUMBENTE / RETADOR
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <h3 style="font-family: var(--font-heading); color: var(--accent-gold); border-bottom: 1px solid #334155;">CAPITAL POLÍTICO</h3>
+                <div style="background: #0f172a; height: 20px; border: 1px solid #334155; margin-top: 10px; position: relative;">
+                    <div style="background: linear-gradient(90deg, #d4af37, #f59e0b); width: 78%; height: 100%;"></div>
+                    <span style="position: absolute; right: 5px; top: -2px; font-size: 0.8rem; color: #fff;">78% - ALTO</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <h3 style="font-family: var(--font-heading); color: var(--accent-gold); border-bottom: 1px solid #334155;">RESUMEN DE PLATAFORMA</h3>
+                <div style="margin-top: 10px; font-size: 0.9rem; color: var(--text-primary);">
+                    <p><strong>🛡️ SEGURIDAD PRIMERO:</strong> Estrategia integral para seguridad urbana y control territorial.</p>
+                    <p><strong>📈 LIBERTAD ECONÓMICA:</strong> Reducción de carga fiscal para estimular el crecimiento de PYMES.</p>
+                    <p><strong>👪 VALORES DE FAMILIA:</strong> Protección de estructuras tradicionales y libertad educativa.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --- COLUMN 3: CAMPAIGN METRICS & MAP ---
+with col_metrics:
+    # Top Row: Metrics
+    st.markdown("""
+    <div class="panel-container" style="margin-bottom: 20px;">
+        <div class="panel-header">
+            <span>MÉTRICAS DE RENDIMIENTO</span>
+            <span>Últimas 24h</span>
+        </div>
+        <div class="panel-content">
+    """, unsafe_allow_html=True)
+    
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        st.markdown(f"""
+        <div class="metric-box">
+            <div class="metric-label">VOTOS PROYECTADOS</div>
+            <div class="metric-val">{total_votes:,}</div>
+            <div style="color: #22c55e; font-size: 0.8rem;">▲ 1.2%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with m2:
+        st.markdown(f"""
+        <div class="metric-box">
+            <div class="metric-label">VOLUMEN SOCIAL</div>
+            <div class="metric-val">{social_vol}</div>
+            <div style="color: #22c55e; font-size: 0.8rem;">▲ 5.4%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with m3:
+        st.markdown(f"""
+        <div class="metric-box">
+            <div class="metric-label">ZONAS CRECIMIENTO</div>
+            <div class="metric-val">{growth_zones}</div>
+            <div style="color: #f59e0b; font-size: 0.8rem;">● ESTABLE</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    st.markdown("</div></div>", unsafe_allow_html=True)
+    
+    # Bottom Row: Map (Mini)
+    st.markdown("""
+    <div class="panel-container">
+        <div class="panel-header">
+            <span>INTELIGENCIA GEOSPACIAL</span>
+            <span>EN VIVO</span>
+        </div>
+        <div class="panel-content" style="padding: 0;">
+    """, unsafe_allow_html=True)
+    
+    # Simple Map Render
+    m = folium.Map(location=[6.2442, -75.5812], zoom_start=11, tiles="CartoDB dark_matter")
+    # Add Heatmap if data exists
+    if target_col in synthesized_data.columns:
+        heat_df = synthesized_data[synthesized_data[target_col] > 0]
+        heat_data = heat_df[['lat', 'lon', target_col]].values.tolist()
+        HeatMap(heat_data, radius=20, blur=15, gradient={0.4: '#1e3a8a', 0.7: '#3b82f6', 1.0: '#d4af37'}).add_to(m)
+    
+    st_folium(m, width=700, height=300, returned_objects=[])
+    
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
 # --- MULTI-WINDOW INTERFACE (TABS) ---
 tab_map, tab_sim, tab_control, tab_social, tab_crm = st.tabs(["🗺️ OPS GEOSPACIALES", "🔮 PLATAFORMA SIMULACIÓN", "🎛️ SALA DE CONTROL", "📡 INTEL SOCIAL", "👥 OPS DE CAMPO"])
 
 with tab_map:
-    st.markdown("### 🗺️ PLATAFORMA DE ESTRATEGIA GEOSPACIAL")
-
+    # --- GEO-ANALYSIS PANEL ---
     col_map, col_controls = st.columns([3, 1])
 
     with col_controls:
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>CAPAS ESTRATÉGICAS</span>
+                <span>⚙️</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
+        
         st.markdown("#### 📡 CONTROL DE CAPAS")
         layer_select = st.radio("CAPA ACTIVA", [
             "Densidad de Votos (Consolidación)", 
@@ -321,23 +468,50 @@ with tab_map:
             "Ruta Logística (TSP)",
             "Mapa Calor Crisis (Fx 16)",
             "Propensión Donantes (Fx 29)"
-        ])
+        ], label_visibility="collapsed")
+        
+        st.markdown("---")
         
         # Sub-selector for Vote Density
+        density_target = st.session_state.selected_candidate
         if layer_select == "Densidad de Votos (Consolidación)":
-            density_target = st.selectbox("SELECCIONAR OBJETIVO DENSIDAD", specific_targets, index=0)
+            density_target = st.selectbox("OBJETIVO", specific_targets, index=specific_targets.index(st.session_state.selected_candidate))
         
-        st.markdown("#### ⚠️ ALERTAS")
+        st.markdown("#### ⚠️ ALERTS")
+        is_demo = st.session_state.is_demo
         if is_demo:
             st.markdown("""<div class="alert-box">MODO DEMO ACTIVO<br>Usando Datos Reconstruidos</div>""", unsafe_allow_html=True)
         if synthesized_data.empty:
             st.markdown("""<div class="alert-box">NO SE DETECTARON DATOS<br>Verificar Selección Candidato</div>""", unsafe_allow_html=True)
+            
+        # CRM File Uploader
+        st.markdown("---")
+        st.markdown("#### 📤 CRM UPLOAD")
+        uploaded_crm_file = st.file_uploader("Cargar CSV de Contactos", type=["csv"])
+        if uploaded_crm_file is not None:
+            st.session_state.crm_file = uploaded_crm_file
+            st.success("CRM cargado exitosamente.")
+        
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
     with col_map:
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>MAPA DE INTELIGENCIA DISTRITAL</span>
+                <span>EN VIVO</span>
+            </div>
+            <div class="panel-content" style="padding: 0;">
+        """, unsafe_allow_html=True)
+        
         # MAP RENDERING LOGIC (ROBUST)
         m = folium.Map(location=[6.2442, -75.5812], zoom_start=12, tiles="CartoDB dark_matter")
         Fullscreen().add_to(m)
         
+        # Initialize logistics_route and strategic_points for this scope
+        logistics_route = st.session_state.logistics_route
+        strategic_points = st.session_state.strategic_points
+
         if not synthesized_data.empty:
             
             if layer_select == "Densidad de Votos (Consolidación)":
@@ -388,6 +562,11 @@ with tab_map:
                     'OBSERVATION': 'OBSERVACIÓN'
                 }
                 
+                # Generate strategic points if not already generated
+                if not st.session_state.strategic_points:
+                    st.session_state.strategic_points = brain_mod.identify_strategic_points(synthesized_data)
+                strategic_points = st.session_state.strategic_points
+
                 for _, row in synthesized_data.iterrows():
                     strat = row.get('strategy_class', 'OBSERVATION')
                     strat_display = strat_map.get(strat, strat)
@@ -424,6 +603,10 @@ with tab_map:
                             
             elif layer_select == "Ruta Logística (TSP)":
                 # Function 8: Draw Route
+                if not st.session_state.logistics_route:
+                    st.session_state.logistics_route = brain_mod.optimize_logistics_route(synthesized_data)
+                logistics_route = st.session_state.logistics_route
+
                 if logistics_route:
                     points = [[p['lat'], p['lon']] for p in logistics_route]
                     folium.PolyLine(points, color="#00f2ff", weight=5, opacity=0.9, dash_array='10').add_to(m)
@@ -447,15 +630,17 @@ with tab_map:
                 HeatMap(donor_data, radius=25, blur=15, gradient={0.4: '#facc15', 0.7: '#eab308', 1.0: '#ca8a04'}, name="Donantes").add_to(m)
 
             # Strategic Points (Always Visible)
-            for point in strategic_points:
-                folium.Marker(
-                    location=[point['lat'], point['lon']],
-                    icon=folium.Icon(color=point['color'], icon=point['icon'], prefix='fa'),
-                    tooltip=point['title'],
-                    popup=f"<b>{point['title']}</b><br>{point['desc']}"
-                ).add_to(m)
+            if st.session_state.strategic_points:
+                for point in st.session_state.strategic_points:
+                    folium.Marker(
+                        location=[point['lat'], point['lon']],
+                        icon=folium.Icon(color=point['color'], icon=point['icon'], prefix='fa'),
+                        tooltip=point['title'],
+                        popup=f"<b>{point['title']}</b><br>{point['desc']}"
+                    ).add_to(m)
                 
         # Function 10: CRM Visualization
+        crm_file = st.session_state.crm_file
         if crm_file:
             try:
                 df_crm = pd.read_csv(crm_file)
@@ -474,70 +659,154 @@ with tab_map:
                 st.error(f"Error loading CRM: {e}")
                 
         st_folium(m, width=1200, height=600, returned_objects=[])
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
 with tab_sim:
-    st.markdown("### 🔮 PLATAFORMA SIMULACIÓN (Funciones 11-20)")
-    
+    # --- SIMULATION DECK ---
     sim_col1, sim_col2 = st.columns(2)
     with sim_col1:
-        st.markdown("#### 📈 CRECIMIENTO COMPARATIVO (Fx 11)")
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>CRECIMIENTO COMPARATIVO</span>
+                <span>Fx 11</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         synthesized_data = brain_mod.calculate_comparative_growth(synthesized_data)
         st.line_chart(synthesized_data.set_index('Puesto')['growth_velocity'].head(20))
+        st.markdown("</div></div>", unsafe_allow_html=True)
         
-        st.markdown("#### 🌪️ GEMELO DIGITAL (Fx 13)")
+        st.markdown("""
+        <div class="panel-container" style="margin-top: 20px;">
+            <div class="panel-header">
+                <span>SIMULACIÓN GEMELO DIGITAL</span>
+                <span>Fx 13</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         synthesized_data = brain_mod.run_digital_twin(synthesized_data)
         st.bar_chart(synthesized_data['win_probability'].head(10))
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
     with sim_col2:
-        st.markdown("#### 🤝 CONSTRUCTOR COALICIÓN (Fx 19)")
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>CONSTRUCTOR DE COALICIÓN</span>
+                <span>Fx 19</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         synthesized_data = brain_mod.build_coalition(synthesized_data)
         st.metric("Impulso Coalición", "+15%", "Votos")
+        st.markdown("</div></div>", unsafe_allow_html=True)
         
-        st.markdown("#### 🏆 CAMINO A LA VICTORIA (Fx 20)")
+        st.markdown("""
+        <div class="panel-container" style="margin-top: 20px;">
+            <div class="panel-header">
+                <span>CAMINO A LA VICTORIA</span>
+                <span>Fx 20</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         victory_path = brain_mod.generate_victory_path(synthesized_data)
         st.dataframe(victory_path, use_container_width=True)
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
 with tab_control:
-    st.markdown("### 🎛️ SALA DE CONTROL (Funciones 21-30)")
-    
+    # --- CONTROL ROOM ---
     c_col1, c_col2, c_col3 = st.columns(3)
     
     with c_col1:
-        st.markdown("#### 🎭 GEN PERSONAS (Fx 21)")
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>GENERADOR DE PERSONAS</span>
+                <span>Fx 21</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         persona = brain_mod.generate_personas(synthesized_data)
         st.json(persona)
+        st.markdown("</div></div>", unsafe_allow_html=True)
         
-        st.markdown("#### 🦠 BUCLE VIRAL (Fx 22)")
+        st.markdown("""
+        <div class="panel-container" style="margin-top: 20px;">
+            <div class="panel-header">
+                <span>SIMULACIÓN BUCLE VIRAL</span>
+                <span>Fx 22</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         viral_data = brain_mod.simulate_viral_loop()
-        st.line_chart(viral_data.set_index('Day'))
+        st.line_chart(viral_data.set_index('Día'))
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
     with c_col2:
-        st.markdown("#### 💸 GASTO PRESUPUESTO (Fx 25)")
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>TASA DE GASTO</span>
+                <span>Fx 25</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         budget_data = brain_mod.forecast_budget_burn()
-        st.area_chart(budget_data.set_index('Week')['Spend'])
+        st.area_chart(budget_data.set_index('Semana')['Gasto'])
+        st.markdown("</div></div>", unsafe_allow_html=True)
         
-        st.markdown("#### 🎮 GAMIFICACIÓN GOTV (Fx 26)")
+        st.markdown("""
+        <div class="panel-container" style="margin-top: 20px;">
+            <div class="panel-header">
+                <span>GAMIFICACIÓN GOTV</span>
+                <span>Fx 26</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         gotv_data = brain_mod.gamify_gotv()
         st.dataframe(gotv_data, use_container_width=True)
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
     with c_col3:
-        st.markdown("#### 🕵️ INTEL OPOSICIÓN (Fx 24)")
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>INTELIGENCIA OPOSICIÓN</span>
+                <span>Fx 24</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         opp_data = brain_mod.get_opposition_intel()
         st.table(opp_data)
+        st.markdown("</div></div>", unsafe_allow_html=True)
         
-        st.markdown("#### 🌦️ IMPACTO CLIMA (Fx 27)")
+        st.markdown("""
+        <div class="panel-container" style="margin-top: 20px;">
+            <div class="panel-header">
+                <span>IMPACTO CLIMÁTICO</span>
+                <span>Fx 27</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         weather = brain_mod.correlate_weather()
-        st.metric("Pronóstico", weather['Forecast'], weather['Turnout Impact'])
+        st.metric("Pronóstico", weather['Pronóstico'], weather['Impacto Participación'])
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
 with tab_social:
-    st.markdown("### 📡 INTELIGENCIA SOCIAL AVANZADA")
-    
-    # --- LAYOUT: 3 COLUMNS (Feed/Order Book, Profiler, Message Designer) ---
+    # --- SOCIAL INTELLIGENCE ---
     col_feed, col_profile, col_designer = st.columns([1.5, 1, 1])
     
     # 1. FEED & LISTENER (ORDER BOOK STYLE)
     with col_feed:
-        st.markdown("#### 📖 LIBRO DE ÓRDENES (SOCIAL)")
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>LIBRO DE ÓRDENES (SENTIMIENTO)</span>
+                <span>EN VIVO</span>
+            </div>
+            <div class="panel-content" style="padding: 0;">
+        """, unsafe_allow_html=True)
         
         # Filters
         f_col1, f_col2 = st.columns(2)
@@ -598,10 +867,18 @@ with tab_social:
                     """, unsafe_allow_html=True)
                     
                 st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
     # 2. VOTER PROFILER
     with col_profile:
-        st.markdown("#### 👤 PERFILADOR (KYC)")
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>PERFILADOR DE VOTANTES (KYC)</span>
+                <span>OBJETIVO</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         
         # User Selection (Simulated from Feed)
         if not feed_data.empty:
@@ -635,15 +912,22 @@ with tab_social:
                 # Action Buttons
                 st.markdown("<br>", unsafe_allow_html=True)
                 c1, c2 = st.columns(2)
-                c1, c2 = st.columns(2)
                 with c1:
                     st.button("RECLUTAR (LONG)", key="btn_long", use_container_width=True)
                 with c2:
                     st.button("NEUTRALIZAR (SHORT)", key="btn_short", use_container_width=True)
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
     # 3. MESSAGE DESIGNER
     with col_designer:
-        st.markdown("#### 💬 DISEÑADOR DE MENSAJES")
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>SIMULADOR DE MENSAJES</span>
+                <span>PRUEBA</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         
         target_audience = st.selectbox("AUDIENCIA OBJETIVO", ["URIBISMO", "PETRISMO", "INDEPENDIENTES", "GENERAL"])
         draft_msg = st.text_area("BORRADOR DE MENSAJE", height=150, placeholder="Escribe tu mensaje aquí para simular impacto...")
@@ -670,15 +954,16 @@ with tab_social:
                     st.warning("Impacto bajo. Revisa palabras clave.")
             else:
                 st.error("Escribe un mensaje primero.")
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
 with tab_crm:
-    st.markdown("### 👥 OPERACIONES DE CAMPO - PRIORIZACIÓN CONTACTOS")
+    # --- FIELD OPERATIONS ---
     
     # Initialize survey handler
-    from src.survey_handler import AutomatedSurveyHandler
     survey_mod = AutomatedSurveyHandler()
     
     # Load or generate contacts
+    crm_file = st.session_state.crm_file
     if crm_file:
         try:
             crm_df = pd.read_csv(crm_file)
@@ -698,16 +983,26 @@ with tab_crm:
         crm_df = survey_mod.generate_mock_data(50)
     
     # Prioritize contacts using strategic points from targeting brain
+    strategic_points = st.session_state.strategic_points
     prioritized_contacts = survey_mod.prioritize_contacts(crm_df, strategic_zones=strategic_points)
     
     # Controls
+    st.markdown("""
+    <div class="panel-container" style="margin-bottom: 20px;">
+        <div class="panel-header">
+            <span>FILTROS OPS DE CAMPO</span>
+            <span>CRM</span>
+        </div>
+        <div class="panel-content">
+    """, unsafe_allow_html=True)
+    
     col_f1, col_f2, col_f3 = st.columns([1, 1, 2])
     
     with col_f1:
         tier_filter = st.multiselect(
             "NIVEL PRIORIDAD",
-            ["HIGH", "MEDIUM", "LOW"],
-            default=["HIGH", "MEDIUM"]
+            ["ALTA", "MEDIA", "BAJA"],
+            default=["ALTA", "MEDIA"]
         )
     
     with col_f2:
@@ -715,7 +1010,9 @@ with tab_crm:
     
     with col_f3:
         st.metric("CONTACTOS TOTALES", len(prioritized_contacts))
-        st.metric("ALTA PRIORIDAD", len(prioritized_contacts[prioritized_contacts['priority_tier'] == 'HIGH']))
+        st.metric("ALTA PRIORIDAD", len(prioritized_contacts[prioritized_contacts['priority_tier'] == 'ALTA']))
+    
+    st.markdown("</div></div>", unsafe_allow_html=True)
     
     # Filter based on controls
     filtered_contacts = prioritized_contacts[
@@ -723,13 +1020,18 @@ with tab_crm:
         (prioritized_contacts['afinidad_score'] >= min_affinity)
     ]
     
-    st.markdown("---")
-    
     # Two-column layout: Map + Contact Table
     col_map_f, col_table_f = st.columns([2, 1])
     
     with col_map_f:
-        st.markdown("#### 🗺️ MAPA DE CONTACTOS")
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>MAPA DE CONTACTOS</span>
+                <span>GPS</span>
+            </div>
+            <div class="panel-content" style="padding: 0;">
+        """, unsafe_allow_html=True)
         
         # Create map
         m_contacts = folium.Map(location=[6.2442, -75.5812], zoom_start=12, tiles="CartoDB dark_matter")
@@ -737,9 +1039,9 @@ with tab_crm:
         
         # Color coding by priority tier
         tier_colors = {
-            "HIGH": "#22c55e",
-            "MEDIUM": "#f59e0b",
-            "LOW": "#64748b"
+            "ALTA": "#22c55e",
+            "MEDIA": "#f59e0b",
+            "BAJA": "#64748b"
         }
         
         for _, contact in filtered_contacts.iterrows():
@@ -760,9 +1062,17 @@ with tab_crm:
             ).add_to(m_contacts)
         
         st_folium(m_contacts, width=800, height=400, returned_objects=[])
+        st.markdown("</div></div>", unsafe_allow_html=True)
     
     with col_table_f:
-        st.markdown("#### 📞 LISTA DE LLAMADAS PRIORITARIAS")
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>LISTA DE PRIORIDAD</span>
+                <span>MARCADOR</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
         
         # Display top contacts
         call_list = filtered_contacts[['name', 'phone', 'priority_tier', 'priority_score']].head(20)
@@ -781,7 +1091,8 @@ with tab_crm:
             file_name="tayllerand_call_list.csv",
             mime="text/csv"
         )
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown("---")
-st.markdown("<center style='font-family: Roboto Condensed; color: #64748b; font-size: 0.8rem;'>TAYLLERAND SYSTEM v3.0 | CLASIFICADO | SOLO OJOS AUTORIZADOS</center>", unsafe_allow_html=True)
+st.markdown("<center style='font-family: Cinzel; color: #64748b; font-size: 0.8rem;'>TAYLLERAND OS | EST. 2025 | SISTEMA CLASIFICADO</center>", unsafe_allow_html=True)

@@ -220,30 +220,30 @@ class SocialSentinel:
         if not user_row.empty:
             row = user_row.iloc[0]
             return {
-                "User ID": row['user_id'],
-                "Name": row['user_name'],
-                "Affinity": row['affinity'],
-                "Influence Score": row['influence_score'],
-                "Primary Interests": ", ".join(row['interests']),
-                "Political Taste": row['tastes'],
-                "Age Group": row['age_group'],
-                "Last Active": row['date'],
-                "Sentiment History": "Positive" if row['sentiment'] > 0 else "Negative",
-                "Engagement Potential": "High" if row['influence_score'] > 70 else "Medium"
+                "ID Usuario": row['user_id'],
+                "Nombre": row['user_name'],
+                "Afinidad": row['affinity'],
+                "Puntaje Influencia": row['influence_score'],
+                "Intereses": ", ".join(row['interests']),
+                "Gusto Político": row['tastes'],
+                "Grupo Edad": row['age_group'],
+                "Última Actividad": row['date'],
+                "Historial Sentimiento": "Positivo" if row['sentiment'] > 0 else "Negativo",
+                "Potencial Compromiso": "Alto" if row['influence_score'] > 70 else "Medio"
             }
         else:
             # Fallback for dynamic/mock users not in the static list
             return {
-                "User ID": user_id,
-                "Name": "Usuario Simulado",
-                "Affinity": "INDEPENDIENTES",
-                "Influence Score": random.randint(20, 60),
-                "Primary Interests": "General, Noticias",
-                "Political Taste": "Moderado",
-                "Age Group": "26-35",
-                "Last Active": "Hoy",
-                "Sentiment History": "Neutral",
-                "Engagement Potential": "Low"
+                "ID Usuario": user_id,
+                "Nombre": "Usuario Simulado",
+                "Afinidad": "INDEPENDIENTES",
+                "Puntaje Influencia": random.randint(20, 60),
+                "Intereses": "General, Noticias",
+                "Gusto Político": "Moderado",
+                "Grupo Edad": "26-35",
+                "Última Actividad": "Hoy",
+                "Historial Sentimiento": "Neutral",
+                "Potencial Compromiso": "Bajo"
             }
 
     def analyze_message_impact(self, message, target_audience):
@@ -280,8 +280,8 @@ class SocialSentinel:
         sentiment_shift = (final_impact / 20) * (1 if audience_mod > 1.0 else -0.5)
         
         return {
-            "Impact Score": int(final_impact),
-            "Projected Reach": int(final_impact * 150),
-            "Sentiment Shift": f"{sentiment_shift:+.1f}%",
-            "Resonance": "High" if final_impact > 70 else "Medium" if final_impact > 40 else "Low"
+            "Puntaje Impacto": int(final_impact),
+            "Alcance Proyectado": int(final_impact * 150),
+            "Cambio Sentimiento": f"{sentiment_shift:+.1f}%",
+            "Resonancia": "Alta" if final_impact > 70 else "Media" if final_impact > 40 else "Baja"
         }

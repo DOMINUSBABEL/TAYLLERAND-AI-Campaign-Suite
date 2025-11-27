@@ -337,12 +337,12 @@ class TargetingBrain:
         
         # Mock aggregation logic for demonstration
         return {
-            "Zone": "El Poblado",
+            "Zona": "El Poblado",
             "Persona": "El Profesional Conservador",
-            "Interests": ["Seguridad", "Responsabilidad Fiscal", "Familia", "Negocios"],
-            "Demographics": "35-50 años, Ingresos Altos",
-            "Key Issues": "Impuestos, Seguridad Ciudadana",
-            "Preferred Channel": "WhatsApp & LinkedIn"
+            "Intereses": ["Seguridad", "Responsabilidad Fiscal", "Familia", "Negocios"],
+            "Demografía": "35-50 años, Ingresos Altos",
+            "Temas Clave": "Impuestos, Seguridad Ciudadana",
+            "Canal Preferido": "WhatsApp & LinkedIn"
         }
 
     def match_campaign_targets(self, social_df):
@@ -366,44 +366,44 @@ class TargetingBrain:
         """Function 22: WhatsApp Viral Loop Simulator"""
         # Returns a simulation of message spread
         return pd.DataFrame({
-            "Day": [1, 2, 3, 4, 5],
-            "Reach": [100, 500, 2500, 12500, 60000]
+            "Día": [1, 2, 3, 4, 5],
+            "Alcance": [100, 500, 2500, 12500, 60000]
         })
 
     def model_debate_impact(self):
         """Function 23: Debate Performance Impact"""
-        return {"Topic": "Seguridad", "Sentiment Shift": "+5.2%"}
+        return {"Tema": "Seguridad", "Cambio Sentimiento": "+5.2%"}
 
     def get_opposition_intel(self):
         """Function 24: Opposition Research Vault"""
         return [
-            {"Candidate": "Petro", "Vulnerability": "Política Económica", "Risk": "Alto"},
-            {"Candidate": "Fico", "Vulnerability": "Continuismo", "Risk": "Medio"}
+            {"Candidato": "Petro", "Vulnerabilidad": "Política Económica", "Riesgo": "Alto"},
+            {"Candidato": "Fico", "Vulnerabilidad": "Continuismo", "Riesgo": "Medio"}
         ]
 
     def forecast_budget_burn(self):
         """Function 25: Budget Burn Rate Forecaster"""
         return pd.DataFrame({
-            "Week": [1, 2, 3, 4],
-            "Spend": [5000, 12000, 8000, 25000],
-            "Remaining": [95000, 83000, 75000, 50000]
+            "Semana": [1, 2, 3, 4],
+            "Gasto": [5000, 12000, 8000, 25000],
+            "Restante": [95000, 83000, 75000, 50000]
         })
 
     def gamify_gotv(self):
         """Function 26: GOTV Gamification Engine"""
         return pd.DataFrame({
-            "Captain": ["Maria", "Jose", "Carlos"],
-            "Points": [1500, 1200, 950],
-            "Rank": ["Gold", "Silver", "Bronze"]
+            "Capitán": ["Maria", "Jose", "Carlos"],
+            "Puntos": [1500, 1200, 950],
+            "Rango": ["Oro", "Plata", "Bronce"]
         })
 
     def correlate_weather(self):
         """Function 27: Weather Impact Correlation"""
-        return {"Forecast": "Lluvioso", "Turnout Impact": "-3.5%"}
+        return {"Pronóstico": "Lluvioso", "Impacto Participación": "-3.5%"}
 
     def track_fake_news(self):
         """Function 28: Fake News Immunization Tracker"""
-        return {"Narrative": "Rumor Compra Votos", "Spread": "Alto", "Counter-Measure": "Desplegado"}
+        return {"Narrativa": "Rumor Compra Votos", "Difusión": "Alto", "Contra-Medida": "Desplegado"}
 
     def map_donor_propensity(self, df):
         """Function 29: Donor Propensity Heatmap"""
@@ -413,4 +413,4 @@ class TargetingBrain:
 
     def simulate_governance(self):
         """Function 30: Post-Election Governance Simulator"""
-        return {"Coalition Strength": "62%", "Policy Pass Rate": "Alta"}
+        return {"Fuerza Coalición": "62%", "Tasa Aprobación": "Alta"}

@@ -141,11 +141,11 @@ class AutomatedSurveyHandler:
         # 5. Assign Priority Tiers
         def assign_tier(score):
             if score >= 70:
-                return "HIGH"
+                return "ALTA"
             elif score >= 40:
-                return "MEDIUM"
+                return "MEDIA"
             else:
-                return "LOW"
+                return "BAJA"
         
         df['priority_tier'] = df['priority_score'].apply(assign_tier)
         
