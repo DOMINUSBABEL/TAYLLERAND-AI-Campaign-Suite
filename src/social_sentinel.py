@@ -7,15 +7,21 @@ class SocialSentinel:
     Module 3: Social Sentinel
     Acts as a 'Network Listener' for the campaign.
     Monitors specific affinities, topics, and sentiment across simulated networks.
+    Now includes advanced profiling, geolocation, and message simulation.
     """
     def __init__(self):
         self.affinities = ["URIBISMO", "PETRISMO", "INDEPENDIENTES", "OPOSICIÓN", "GENERAL"]
-        self.topics = ["SEGURIDAD", "ECONOMÍA", "CORRUPCIÓN", "PERSONAL", "CAMPAÑA"]
+        self.topics = ["SEGURIDAD", "ECONOMÍA", "CORRUPCIÓN", "PERSONAL", "CAMPAÑA", "MOVILIDAD", "SALUD"]
+        
+        # Enhanced Profiling Data
+        self.interests_pool = ["Fútbol", "Tecnología", "Religión", "Negocios", "Familia", "Mascotas", "Viajes", "Moda", "Política", "Cultura"]
+        self.tastes_pool = ["Conservador", "Liberal", "Pragmático", "Idealista", "Radical", "Moderado"]
+        self.age_groups = ["18-25", "26-35", "36-50", "50-65", "65+"]
 
     def generate_verified_feed(self):
         """
         Generates a rich, synthetic dataset of social media content.
-        Includes 'affinity' and 'topic' fields for granular filtering.
+        Includes 'affinity', 'topic', 'interests', 'tastes', and 'influence_score'.
         """
         base_date = datetime.now()
         
@@ -32,7 +38,11 @@ class SocialSentinel:
                 "lat": 6.2518, "lon": -75.5636,
                 "type": "OPINION",
                 "affinity": "URIBISMO",
-                "topic": "SEGURIDAD"
+                "topic": "SEGURIDAD",
+                "interests": ["Política", "Seguridad", "Campo"],
+                "tastes": "Conservador",
+                "age_group": "65+",
+                "influence_score": 98
             },
             {
                 "user_name": "Maria Fernanda Cabal",
@@ -45,7 +55,11 @@ class SocialSentinel:
                 "lat": 6.2093, "lon": -75.5714,
                 "type": "RALLY",
                 "affinity": "URIBISMO",
-                "topic": "CAMPAÑA"
+                "topic": "CAMPAÑA",
+                "interests": ["Política", "Negocios", "Familia"],
+                "tastes": "Radical",
+                "age_group": "50-65",
+                "influence_score": 92
             },
             {
                 "user_name": "Abelardo De La Espriella",
@@ -58,7 +72,11 @@ class SocialSentinel:
                 "lat": 6.2442, "lon": -75.5812,
                 "type": "OPINION",
                 "affinity": "URIBISMO",
-                "topic": "SECURITY"
+                "topic": "SECURITY",
+                "interests": ["Derecho", "Moda", "Lujo"],
+                "tastes": "Conservador",
+                "age_group": "36-50",
+                "influence_score": 88
             },
             
             # PETRISMO / OPPOSITION (From Campaign Perspective)
@@ -73,7 +91,11 @@ class SocialSentinel:
                 "lat": 6.2451, "lon": -75.5736,
                 "type": "NEWS",
                 "affinity": "PETRISMO",
-                "topic": "POLÍTICA"
+                "topic": "POLÍTICA",
+                "interests": ["Política", "Medio Ambiente", "Social"],
+                "tastes": "Radical",
+                "age_group": "50-65",
+                "influence_score": 99
             },
             {
                 "user_name": "Daniel Quintero",
@@ -86,7 +108,11 @@ class SocialSentinel:
                 "lat": 6.2442, "lon": -75.5812,
                 "type": "OPINION",
                 "affinity": "PETRISMO",
-                "topic": "CAMPAÑA"
+                "topic": "CAMPAÑA",
+                "interests": ["Tecnología", "Política", "Innovación"],
+                "tastes": "Liberal",
+                "age_group": "36-50",
+                "influence_score": 90
             },
 
             # GENERAL / NEWS / SECURITY ALERTS
@@ -101,7 +127,11 @@ class SocialSentinel:
                 "lat": 6.2080, "lon": -75.5680,
                 "type": "SECURITY_ALERT",
                 "affinity": "GENERAL",
-                "topic": "SEGURIDAD"
+                "topic": "SEGURIDAD",
+                "interests": ["Noticias", "Seguridad"],
+                "tastes": "Neutro",
+                "age_group": "N/A",
+                "influence_score": 85
             },
              {
                 "user_name": "El Colombiano",
@@ -114,25 +144,45 @@ class SocialSentinel:
                 "lat": 6.2300, "lon": -75.5900,
                 "type": "NEWS",
                 "affinity": "GENERAL",
-                "topic": "CAMPAÑA"
+                "topic": "CAMPAÑA",
+                "interests": ["Noticias", "Política", "Economía"],
+                "tastes": "Neutro",
+                "age_group": "N/A",
+                "influence_score": 90
             }
         ]
         
-        # Augment with generic data to fill space
-        for i in range(10):
+        # Augment with generic data to fill space and add variety
+        for i in range(20):
+            affinity = random.choice(self.affinities)
+            topic = random.choice(self.topics)
+            
+            # Correlate sentiment with affinity (simplified)
+            sentiment = random.uniform(-0.5, 0.5)
+            if affinity == "URIBISMO": sentiment += 0.4
+            if affinity == "PETRISMO": sentiment -= 0.4
+            sentiment = max(-1.0, min(1.0, sentiment))
+            
+            # Generate random interests
+            user_interests = random.sample(self.interests_pool, k=random.randint(2, 4))
+            
             data.append({
                 "user_name": f"Ciudadano {i}",
                 "user_id": f"@ciudadano_{i}",
                 "avatar": "",
-                "text": f"Necesitamos más seguridad en la comuna {random.randint(1,16)}. #Medellin",
+                "text": f"Opinión sobre {topic.lower()} en la comuna {random.randint(1,16)}. #{topic} #Medellin",
                 "url": "#",
                 "date": (base_date - timedelta(hours=random.randint(1, 48))).strftime("%Y-%m-%d %H:%M"),
-                "sentiment": -0.5,
+                "sentiment": sentiment,
                 "lat": 6.2 + random.uniform(0, 0.1),
                 "lon": -75.6 + random.uniform(0, 0.1),
                 "type": "CITIZEN",
-                "affinity": "INDEPENDIENTES",
-                "topic": "SEGURIDAD"
+                "affinity": affinity,
+                "topic": topic,
+                "interests": user_interests,
+                "tastes": random.choice(self.tastes_pool),
+                "age_group": random.choice(self.age_groups),
+                "influence_score": random.randint(10, 80)
             })
 
         return pd.DataFrame(data)
@@ -156,3 +206,82 @@ class SocialSentinel:
             df = df[df['topic'].isin(topic_filter)]
             
         return df.sort_values(by="date", ascending=False)
+
+    def generate_voter_profile(self, user_id):
+        """
+        Generates a detailed profile for a specific user ID.
+        Used for the 'Voter Profiler' feature.
+        """
+        # In a real app, this would query a DB. Here we simulate consistency.
+        # We'll regenerate the feed and find the user, or generate a consistent mock if not found.
+        df = self.generate_verified_feed()
+        user_row = df[df['user_id'] == user_id]
+        
+        if not user_row.empty:
+            row = user_row.iloc[0]
+            return {
+                "User ID": row['user_id'],
+                "Name": row['user_name'],
+                "Affinity": row['affinity'],
+                "Influence Score": row['influence_score'],
+                "Primary Interests": ", ".join(row['interests']),
+                "Political Taste": row['tastes'],
+                "Age Group": row['age_group'],
+                "Last Active": row['date'],
+                "Sentiment History": "Positive" if row['sentiment'] > 0 else "Negative",
+                "Engagement Potential": "High" if row['influence_score'] > 70 else "Medium"
+            }
+        else:
+            # Fallback for dynamic/mock users not in the static list
+            return {
+                "User ID": user_id,
+                "Name": "Usuario Simulado",
+                "Affinity": "INDEPENDIENTES",
+                "Influence Score": random.randint(20, 60),
+                "Primary Interests": "General, Noticias",
+                "Political Taste": "Moderado",
+                "Age Group": "26-35",
+                "Last Active": "Hoy",
+                "Sentiment History": "Neutral",
+                "Engagement Potential": "Low"
+            }
+
+    def analyze_message_impact(self, message, target_audience):
+        """
+        Simulates the impact of a drafted message on a specific target audience.
+        Returns impact score, sentiment shift, and reach projection.
+        """
+        base_score = len(message) / 10 # Length factor
+        
+        # Keyword analysis (Mock)
+        keywords = {
+            "seguridad": 15, "familia": 10, "futuro": 10, "paz": 5, 
+            "orden": 12, "libertad": 8, "cambio": 5
+        }
+        
+        keyword_score = sum([val for key, val in keywords.items() if key in message.lower()])
+        
+        # Audience modifier
+        audience_mod = 1.0
+        if target_audience == "URIBISMO":
+            if "seguridad" in message.lower() or "orden" in message.lower():
+                audience_mod = 1.5
+            elif "paz" in message.lower():
+                audience_mod = 0.5
+        elif target_audience == "PETRISMO":
+            if "paz" in message.lower() or "cambio" in message.lower():
+                audience_mod = 1.5
+            elif "orden" in message.lower():
+                audience_mod = 0.6
+                
+        final_impact = min(100, (base_score + keyword_score) * audience_mod)
+        
+        # Sentiment Shift Simulation
+        sentiment_shift = (final_impact / 20) * (1 if audience_mod > 1.0 else -0.5)
+        
+        return {
+            "Impact Score": int(final_impact),
+            "Projected Reach": int(final_impact * 150),
+            "Sentiment Shift": f"{sentiment_shift:+.1f}%",
+            "Resonance": "High" if final_impact > 70 else "Medium" if final_impact > 40 else "Low"
+        }

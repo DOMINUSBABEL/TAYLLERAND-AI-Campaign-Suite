@@ -28,176 +28,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- SCI-FI / CYBERPUNK UI THEME & ANIMATIONS ---
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&family=Inter:wght@300;400;600&display=swap');
-
-    /* ANIMATIONS */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes slideInLeft {
-        from { transform: translateX(-20px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes pulseGlow {
-        0% { box-shadow: 0 0 5px #00f2ff; }
-        50% { box-shadow: 0 0 20px #00f2ff; }
-        100% { box-shadow: 0 0 5px #00f2ff; }
-    }
-    @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-5px); }
-        100% { transform: translateY(0px); }
-    }
-
-    /* GLOBAL THEME */
-    .stApp {
-        background-color: #02040a; /* Deep Space Black */
-        color: #e0fbfc;
-        font-family: 'Inter', sans-serif; /* Better readability */
-    }
-
-    /* HEADERS */
-    h1, h2, h3 {
-        font-family: 'Rajdhani', sans-serif;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        color: #00f2ff; /* Neon Cyan */
-        text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
-        animation: slideInLeft 0.8s ease-out;
-    }
-    
-    /* SIDEBAR */
-    [data-testid="stSidebar"] {
-        background-color: #050a14;
-        border-right: 1px solid #1e3a8a;
-        box-shadow: 5px 0 15px rgba(0, 242, 255, 0.1);
-    }
-    
-    /* METRIC CARDS (HUD STYLE) */
-    .hud-card {
-        background: rgba(10, 20, 40, 0.7);
-        border: 1px solid #00f2ff;
-        border-left: 4px solid #00f2ff;
-        border-radius: 4px; /* Slightly rounded for modern feel */
-        padding: 15px;
-        margin-bottom: 10px;
-        backdrop-filter: blur(5px);
-        transition: all 0.3s ease;
-        animation: fadeIn 0.8s ease-out;
-    }
-    .hud-card:hover {
-        box-shadow: 0 0 25px rgba(0, 242, 255, 0.4);
-        transform: translateY(-5px) scale(1.02);
-        border-color: #fff;
-        background: rgba(10, 20, 40, 0.9);
-    }
-    .hud-label {
-        font-family: 'Share Tech Mono', monospace;
-        font-size: 0.8rem;
-        color: #94a3b8;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    .hud-value {
-        font-family: 'Rajdhani', sans-serif;
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #ffffff;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    }
-    
-    /* WARNING / ALERT BOX */
-    .alert-box {
-        background: rgba(220, 38, 38, 0.1);
-        border: 1px solid #ef4444;
-        color: #fca5a5;
-        padding: 10px;
-        font-family: 'Share Tech Mono', monospace;
-        border-left: 4px solid #ef4444;
-        animation: pulseGlow 2s infinite;
-        border-radius: 4px;
-    }
-
-    /* DATAFRAME STYLING */
-    [data-testid="stDataFrame"] {
-        border: 1px solid #1e3a8a;
-        border-radius: 4px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    }
-    
-    /* BUTTONS */
-    .stButton button {
-        background-color: rgba(0, 242, 255, 0.05);
-        border: 1px solid #00f2ff;
-        color: #00f2ff;
-        font-family: 'Share Tech Mono', monospace;
-        text-transform: uppercase;
-        border-radius: 4px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    .stButton button:hover {
-        background-color: #00f2ff;
-        color: #000;
-        box-shadow: 0 0 20px #00f2ff, 0 0 40px rgba(0, 242, 255, 0.4);
-        transform: translateY(-2px);
-    }
-    .stButton button:active {
-        transform: translateY(0);
-    }
-    
-    /* TABS */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: rgba(0,0,0,0.2);
-        padding: 5px;
-        border-radius: 8px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: transparent;
-        border: none;
-        color: #94a3b8;
-        border-radius: 4px;
-        padding: 8px 16px;
-        transition: all 0.3s;
-        font-family: 'Rajdhani', sans-serif;
-        font-weight: 600;
-    }
-    .stTabs [data-baseweb="tab"]:hover {
-        background-color: rgba(0, 242, 255, 0.1);
-        color: #fff;
-    }
-    .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background-color: rgba(0, 242, 255, 0.15);
-        border: 1px solid rgba(0, 242, 255, 0.3);
-        color: #00f2ff;
-        box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
-    }
-
-    /* SCROLLBAR */
-    ::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-    }
-    ::-webkit-scrollbar-track {
-        background: #02040a; 
-    }
-    ::-webkit-scrollbar-thumb {
-        background: #1e3a8a; 
-        border-radius: 5px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-        background: #00f2ff; 
-    }
-
-</style>
-""", unsafe_allow_html=True)
-
 # --- INITIALIZATION ---
 def load_modules():
     return E26Processor(), SocialSentinel(), TargetingBrain()
@@ -219,7 +49,7 @@ candidate_options = [
 with st.sidebar:
     st.image("logo.png", width=100)
     st.markdown("## 🦅 TAYLLERAND_OS `v3.0`")
-    st.markdown("<div style='font-family: Share Tech Mono; color: #00f2ff; font-size: 0.8rem;'>SISTEMA EN LÍNEA // ESPERANDO ENTRADA</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-family: Roboto Condensed; color: #94a3b8; font-size: 0.8rem;'>SISTEMA EN LÍNEA // ESPERANDO ENTRADA</div>", unsafe_allow_html=True)
     st.markdown("---")
     
     st.markdown("### 📂 ENLACE DE DATOS")
@@ -247,7 +77,7 @@ with st.sidebar:
     }
     
     st.markdown("---")
-    st.markdown("<div style='text-align: center; font-family: Share Tech Mono; color: #475569;'>CONEXIÓN SEGURA ESTABLECIDA</div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align: center; font-family: Roboto Condensed; color: #64748b;'>CONEXIÓN SEGURA ESTABLECIDA</div>", unsafe_allow_html=True)
 
 # --- DATA PROCESSING ENGINE ---
 # Use the selected candidate plus the full list for processing context
@@ -296,7 +126,7 @@ logistics_route = brain_mod.calculate_optimal_route(synthesized_data)
 campaign_brief = brain_mod.generate_campaign_brief(synthesized_data, strategic_points)
 
 # --- MAIN COMMAND CENTER ---
-st.markdown(f"# 📊 INTELIGENCIA DE CAMPAÑA // <span style='color:#00f2ff'>{target_candidate}</span>", unsafe_allow_html=True)
+st.markdown(f"# 📊 INTELIGENCIA DE CAMPAÑA // <span style='color:#2563eb'>{target_candidate}</span>", unsafe_allow_html=True)
 
 # Function 9: Campaign Brief (Collapsible)
 with st.expander("📄 INFORME OFICIAL DE CAMPAÑA (Función 9)", expanded=False):
@@ -318,7 +148,7 @@ with kpi2:
 with kpi3:
     st.markdown(f"""<div class="hud-card"><div class="hud-label">ZONAS DE CRECIMIENTO</div><div class="hud-value">{growth_zones}</div></div>""", unsafe_allow_html=True)
 with kpi4:
-    st.markdown(f"""<div class="hud-card"><div class="hud-label">FUENTE DE DATOS</div><div class="hud-value" style="font-size: 1.5rem;">{data_source_label}</div></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div class="hud-card alert"><div class="hud-label">FUENTE DE DATOS</div><div class="hud-value" style="font-size: 1.5rem;">{data_source_label}</div></div>""", unsafe_allow_html=True)
 
 # --- MULTI-WINDOW INTERFACE (TABS) ---
 tab_map, tab_sim, tab_control, tab_social, tab_crm = st.tabs(["🗺️ OPS GEOSPACIALES", "🔮 PLATAFORMA SIMULACIÓN", "🎛️ SALA DE CONTROL", "📡 INTEL SOCIAL", "👥 OPS DE CAMPO"])
@@ -548,68 +378,123 @@ with tab_control:
         st.metric("Pronóstico", weather['Forecast'], weather['Turnout Impact'])
 
 with tab_social:
-    st.markdown("### 📡 ALIMENTACIÓN INTEL EN VIVO (ESCUCHA DE RED)")
+    st.markdown("### 📡 INTELIGENCIA SOCIAL AVANZADA")
     
-    # Listener Controls
-    col_s1, col_s2, col_s3 = st.columns([1, 1, 2])
+    # --- LAYOUT: 3 COLUMNS (Feed, Profiler, Message Designer) ---
+    col_feed, col_profile, col_designer = st.columns([1.2, 1, 1])
     
-    with col_s1:
-        active_affinity = st.multiselect(
-            "FILTRO AFINIDAD", 
-            social_mod.affinities, 
-            default=["URIBISMO", "GENERAL"]
-        )
+    # 1. FEED & LISTENER
+    with col_feed:
+        st.markdown("#### 👂 ESCUCHA ACTIVA")
         
-    with col_s2:
-        active_topic = st.multiselect(
-            "ENFOQUE TEMA", 
-            social_mod.topics,
-            default=["SEGURIDAD", "CAMPAÑA"]
-        )
+        # Filters
+        f_col1, f_col2 = st.columns(2)
+        with f_col1:
+            active_affinity = st.multiselect("AFINIDAD", social_mod.affinities, default=["URIBISMO", "GENERAL"])
+        with f_col2:
+            active_topic = st.multiselect("TEMA", social_mod.topics, default=["SEGURIDAD", "CAMPAÑA"])
+            
+        # Fetch Data
+        feed_data = social_mod.listen(affinity_filter=active_affinity, topic_filter=active_topic)
         
-    # Fetch Data from Listener
-    # If no filter selected, pass None to get all (or handle empty list)
-    aff_filter = active_affinity if active_affinity else None
-    top_filter = active_topic if active_topic else None
-    
-    feed_data = social_mod.listen(affinity_filter=aff_filter, topic_filter=top_filter)
-    
-    with col_s3:
-        # Visualization: Topic Distribution
-        if not feed_data.empty:
-            chart = alt.Chart(feed_data).mark_arc(innerRadius=50).encode(
-                theta=alt.Theta("count()", stack=True),
-                color=alt.Color("topic", scale={"scheme": "blues"}),
-                tooltip=["topic", "count()"]
-            ).properties(height=150, title="DISTRIBUCIÓN TEMAS")
-            st.altair_chart(chart, use_container_width=True)
-    
-    st.markdown("---")
-    
-    # Feed Display
-    with st.container(height=500):
-        if feed_data.empty:
-            st.info("No se detectaron señales en estas frecuencias.")
-        else:
-            for _, row in feed_data.iterrows():
-                # Color coding by sentiment
-                border_color = "#22c55e" if row['sentiment'] > 0 else "#ef4444"
-                if row['sentiment'] == 0: border_color = "#94a3b8"
-                
-                st.markdown(f"""
-                <div style="border-left: 3px solid {border_color}; padding-left: 15px; margin-bottom: 20px; background: rgba(10, 20, 40, 0.5); border-radius: 0 5px 5px 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: #00f2ff; font-weight: bold; font-size: 0.9rem;">{row['user_id']}</span>
-                        <span style="font-size: 0.7rem; color: #64748b; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">{row['affinity']}</span>
+        # Feed Visualization
+        with st.container(height=600):
+            if feed_data.empty:
+                st.info("Sin señal.")
+            else:
+                for _, row in feed_data.iterrows():
+                    # Dynamic Border Color
+                    b_color = "#22c55e" if row['sentiment'] > 0 else "#ef4444"
+                    if row['sentiment'] == 0: b_color = "#94a3b8"
+                    
+                    # Card HTML
+                    st.markdown(f"""
+                    <div style="
+                        border-left: 4px solid {b_color}; 
+                        background: #1e293b; 
+                        padding: 15px; 
+                        margin-bottom: 10px; 
+                        border-radius: 4px;
+                        border: 1px solid #334155;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="color: #f8fafc; font-weight: 700; font-size: 0.95rem;">{row['user_name']}</span>
+                            <span style="font-size: 0.7rem; color: #cbd5e1; background: #334155; padding: 2px 6px; border-radius: 4px;">{row['affinity']}</span>
+                        </div>
+                        <div style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.4; margin-bottom: 10px;">{row['text']}</div>
+                        <div style="display: flex; gap: 10px; font-size: 0.75rem; color: #94a3b8; font-family: 'Roboto Condensed';">
+                            <span>📅 {row['date']}</span>
+                            <span>🏷️ {row['topic']}</span>
+                            <span>⚡ {row.get('influence_score', 0)} INF</span>
+                        </div>
                     </div>
-                    <div style="color: #e0fbfc; font-size: 0.9rem; margin-top: 5px; font-family: 'Rajdhani', sans-serif;">{row['text']}</div>
-                    <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 8px; display: flex; gap: 10px;">
-                        <span>📅 {row['date']}</span>
-                        <span>🏷️ {row['topic']}</span>
-                        <span>❤️ {int(abs(row['sentiment'])*100)}% IMPACTO</span>
+                    """, unsafe_allow_html=True)
+
+    # 2. VOTER PROFILER
+    with col_profile:
+        st.markdown("#### 👤 PERFILADOR DE OBJETIVOS")
+        
+        # User Selection (Simulated from Feed)
+        if not feed_data.empty:
+            selected_user_id = st.selectbox("SELECCIONAR OBJETIVO", feed_data['user_id'].unique())
+            
+            if selected_user_id:
+                profile = social_mod.generate_voter_profile(selected_user_id)
+                
+                # Profile Card
+                st.markdown(f"""
+                <div class="hud-card" style="border-top: 4px solid #f59e0b;">
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <div style="font-size: 1.4rem; font-weight: 800; color: #fff;">{profile['Name']}</div>
+                        <div style="color: #94a3b8; font-family: 'Roboto Condensed';">{profile['User ID']}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.9rem;">
+                        <div><span style="color:#94a3b8; font-weight:700;">AFINIDAD:</span><br>{profile['Affinity']}</div>
+                        <div><span style="color:#94a3b8; font-weight:700;">INFLUENCIA:</span><br>{profile['Influence Score']}/100</div>
+                        <div><span style="color:#94a3b8; font-weight:700;">GUSTOS:</span><br>{profile['Political Taste']}</div>
+                        <div><span style="color:#94a3b8; font-weight:700;">EDAD:</span><br>{profile['Age Group']}</div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <span style="color:#94a3b8; font-size: 0.8rem; font-weight:700;">INTERESES CLAVE:</span>
+                        <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px;">
+                            {''.join([f'<span style="background:#334155; color:#f1f5f9; padding:4px 10px; border-radius:4px; font-size:0.75rem;">{i}</span>' for i in profile['Primary Interests'].split(', ')])}
+                        </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+                
+                # Action Buttons
+                st.button("🎯 AGREGAR A LISTA DE OBJETIVOS", use_container_width=True)
+                st.button("⚠️ MARCAR COMO HOSTIL", use_container_width=True)
+
+    # 3. MESSAGE DESIGNER
+    with col_designer:
+        st.markdown("#### 💬 DISEÑADOR DE MENSAJES")
+        
+        target_audience = st.selectbox("AUDIENCIA OBJETIVO", ["URIBISMO", "PETRISMO", "INDEPENDIENTES", "GENERAL"])
+        draft_msg = st.text_area("BORRADOR DE MENSAJE", height=150, placeholder="Escribe tu mensaje aquí para simular impacto...")
+        
+        if st.button("🚀 SIMULAR IMPACTO", use_container_width=True):
+            if draft_msg:
+                impact = social_mod.analyze_message_impact(draft_msg, target_audience)
+                
+                # Results Display
+                st.markdown("##### RESULTADOS DE SIMULACIÓN")
+                
+                r1, r2 = st.columns(2)
+                with r1:
+                    st.metric("PUNTAJE IMPACTO", f"{impact['Impact Score']}/100", impact['Sentiment Shift'])
+                with r2:
+                    st.metric("ALCANCE EST.", f"{impact['Projected Reach']}", impact['Resonance'])
+                
+                # Visual Bar
+                st.progress(impact['Impact Score'] / 100)
+                
+                if impact['Impact Score'] > 70:
+                    st.success("¡Mensaje de Alto Impacto! Recomendado para difusión.")
+                elif impact['Impact Score'] < 40:
+                    st.warning("Impacto bajo. Revisa palabras clave.")
+            else:
+                st.error("Escribe un mensaje primero.")
 
 with tab_crm:
     st.markdown("### 👥 OPERACIONES DE CAMPO - PRIORIZACIÓN CONTACTOS")
@@ -724,4 +609,4 @@ with tab_crm:
 
 # --- FOOTER ---
 st.markdown("---")
-st.markdown("<center style='font-family: Share Tech Mono; color: #475569; font-size: 0.8rem;'>TAYLLERAND SYSTEM v3.0 | CLASIFICADO | SOLO OJOS AUTORIZADOS</center>", unsafe_allow_html=True)
+st.markdown("<center style='font-family: Roboto Condensed; color: #64748b; font-size: 0.8rem;'>TAYLLERAND SYSTEM v3.0 | CLASIFICADO | SOLO OJOS AUTORIZADOS</center>", unsafe_allow_html=True)
