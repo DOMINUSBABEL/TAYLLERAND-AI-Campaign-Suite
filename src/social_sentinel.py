@@ -1,5 +1,6 @@
 import pandas as pd
 import random
+import requests
 from datetime import datetime, timedelta
 
 class SocialSentinel:
@@ -17,6 +18,14 @@ class SocialSentinel:
         self.interests_pool = ["Fútbol", "Tecnología", "Religión", "Negocios", "Familia", "Mascotas", "Viajes", "Moda", "Política", "Cultura"]
         self.tastes_pool = ["Conservador", "Liberal", "Pragmático", "Idealista", "Radical", "Moderado"]
         self.age_groups = ["18-25", "26-35", "36-50", "50-65", "65+"]
+        
+        # API Keys (Initialized as None)
+        self.api_keys = {
+            "X": None,
+            "META": None,
+            "TIKTOK": None
+        }
+        self.mode = "SIMULATION" # or "LIVE"
 
     def generate_verified_feed(self):
         """
@@ -187,23 +196,89 @@ class SocialSentinel:
 
         return pd.DataFrame(data)
 
+        return df.sort_values(by="date", ascending=False)
+
+    def set_api_keys(self, x_key=None, meta_key=None, tiktok_key=None):
+        """Sets API keys for live data fetching."""
+        if x_key: self.api_keys["X"] = x_key
+        if meta_key: self.api_keys["META"] = meta_key
+        if tiktok_key: self.api_keys["TIKTOK"] = tiktok_key
+
+    def set_mode(self, mode):
+        """Sets operation mode: 'SIMULATION' or 'LIVE'"""
+        self.mode = mode
+
+    def _fetch_x_data(self, query="Medellín"):
+        """Connects to X API v2 (Placeholder for Bearer Token Auth)"""
+        if not self.api_keys["X"]:
+            return []
+            
+        headers = {"Authorization": f"Bearer {self.api_keys['X']}"}
+        # Mock endpoint for structure
+        url = "https://api.twitter.com/2/tweets/search/recent"
+        params = {"query": query, "max_results": 10, "tweet.fields": "created_at,author_id,geo"}
+        
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            if response.status_code == 200:
+                # Process real data here
+                return [] # Return processed list
+            else:
+                print(f"X API Error: {response.status_code}")
+                return []
+        except Exception as e:
+            print(f"Connection Error: {e}")
+            return []
+
+    def _fetch_meta_data(self):
+        """Placeholder for Meta Graph API"""
+        # Requires complex OAuth flow usually
+        return []
+
+    def _fetch_tiktok_data(self):
+        """Placeholder for TikTok Research API"""
+        return []
+
+    def fetch_live_feed(self):
+        """Aggregates data from connected APIs"""
+        live_data = []
+        
+        # 1. Fetch X
+        x_data = self._fetch_x_data()
+        live_data.extend(x_data)
+        
+        # 2. Fetch Meta
+        # 3. Fetch TikTok
+        
+        if not live_data:
+            # Fallback to simulation if live fetch fails or returns empty
+            return self.generate_verified_feed()
+            
+        return pd.DataFrame(live_data)
+
     def listen(self, affinity_filter=None, topic_filter=None):
         """
         The core 'Listener' function.
         Filters the feed based on specific criteria requested by other modules.
         """
-        df = self.generate_verified_feed()
+        if self.mode == "LIVE":
+            df = self.fetch_live_feed()
+        else:
+            df = self.generate_verified_feed()
         
         if affinity_filter:
             # Allow for single string or list of affinities
             if isinstance(affinity_filter, str):
                 affinity_filter = [affinity_filter]
-            df = df[df['affinity'].isin(affinity_filter)]
+            # Check if column exists (Live data might not have it yet)
+            if 'affinity' in df.columns:
+                df = df[df['affinity'].isin(affinity_filter)]
             
         if topic_filter:
             if isinstance(topic_filter, str):
                 topic_filter = [topic_filter]
-            df = df[df['topic'].isin(topic_filter)]
+            if 'topic' in df.columns:
+                df = df[df['topic'].isin(topic_filter)]
             
         return df.sort_values(by="date", ascending=False)
 

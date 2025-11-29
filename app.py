@@ -43,8 +43,8 @@ st.markdown("""
         --surface-color: #1e293b; /* Panel Background */
         --border-color: #d4af37; /* Metallic Gold Border */
         --border-dim: #94a3b8; /* Dim Border for non-active */
-        --text-primary: #e2e8f0; /* Off-white */
-        --text-secondary: #94a3b8; /* Slate Text */
+        --text-primary: #ffffff; /* Pure White for better visibility */
+        --text-secondary: #cbd5e1; /* Lighter Slate */
         --accent-gold: #d4af37; /* Primary Accent */
         --accent-blue: #3b82f6; /* Support/Positive */
         --accent-red: #ef4444; /* Opposition/Negative */
@@ -604,7 +604,7 @@ with tab_map:
             elif layer_select == "Ruta Logística (TSP)":
                 # Function 8: Draw Route
                 if not st.session_state.logistics_route:
-                    st.session_state.logistics_route = brain_mod.optimize_logistics_route(synthesized_data)
+                    st.session_state.logistics_route = brain_mod.calculate_optimal_route(synthesized_data)
                 logistics_route = st.session_state.logistics_route
 
                 if logistics_route:
@@ -815,6 +815,27 @@ with tab_social:
         with f_col2:
             active_topic = st.multiselect("TEMA", social_mod.topics, default=["SEGURIDAD", "CAMPAÑA"])
             
+        # API Configuration (New)
+        with st.expander("⚙️ CONFIGURACIÓN DE FUENTE DE DATOS"):
+            st.markdown("##### CONECTORES API (BETA)")
+            data_mode = st.radio("MODO DE OPERACIÓN", ["SIMULACIÓN (Sintético)", "EN VIVO (API)"], horizontal=True)
+            
+            if data_mode == "EN VIVO (API)":
+                social_mod.set_mode("LIVE")
+                c_x, c_meta, c_tiktok = st.columns(3)
+                with c_x:
+                    x_key = st.text_input("X Bearer Token", type="password", help="API v2 Bearer Token")
+                with c_meta:
+                    meta_key = st.text_input("Meta Access Token", type="password", help="Graph API Token")
+                with c_tiktok:
+                    tiktok_key = st.text_input("TikTok Access Token", type="password", help="Research API Token")
+                
+                if st.button("ACTUALIZAR CREDENCIALES"):
+                    social_mod.set_api_keys(x_key, meta_key, tiktok_key)
+                    st.success("Credenciales actualizadas. Intentando conexión...")
+            else:
+                social_mod.set_mode("SIMULATION")
+            
         # Fetch Data
         feed_data = social_mod.listen(affinity_filter=active_affinity, topic_filter=active_topic)
         
@@ -825,10 +846,12 @@ with tab_social:
             else:
                 st.markdown("""
                 <div class="order-book-container">
-                    <div class="order-book-header">
-                        <span>PRECIO (SENTIMIENTO)</span>
-                        <span>CANTIDAD (INF)</span>
-                        <span>USUARIO</span>
+                    <div class="order-book-header" style="grid-template-columns: 0.5fr 1fr 0.8fr 3fr 0.5fr;">
+                        <span>PLAT</span>
+                        <span>SENTIMIENTO</span>
+                        <span>IMPACTO</span>
+                        <span>CONTENIDO (EXTRACTO)</span>
+                        <span>ACCIÓN</span>
                     </div>
                 """, unsafe_allow_html=True)
                 
@@ -836,19 +859,33 @@ with tab_social:
                 asks = feed_data[feed_data['sentiment'] < 0].sort_values('sentiment', ascending=True)
                 bids = feed_data[feed_data['sentiment'] >= 0].sort_values('sentiment', ascending=False)
                 
+                def render_row(row, type_class):
+                    # Platform Icon Logic
+                    plat_icon = "🌐"
+                    if "twitter" in row.get('url', ''): plat_icon = "🐦" # X
+                    elif "facebook" in row.get('url', ''): plat_icon = "📘" # Meta
+                    elif "tiktok" in row.get('url', ''): plat_icon = "🎵" # TikTok
+                    
+                    # Content Truncation
+                    content = row.get('text', '')
+                    if len(content) > 60: content = content[:60] + "..."
+                    
+                    return f"""
+                    <div class="order-row {type_class}" style="grid-template-columns: 0.5fr 1fr 0.8fr 3fr 0.5fr; align-items: center;">
+                        <span style="font-size: 1.2rem;">{plat_icon}</span>
+                        <span style="font-weight: bold;">{row['sentiment']:.2f}</span>
+                        <span>{row.get('influence_score', 0)}</span>
+                        <span style="color: var(--text-secondary); font-style: italic; font-size: 0.8rem;">"{content}"</span>
+                        <a href="{row.get('url', '#')}" target="_blank" style="text-decoration: none; color: var(--accent-gold); font-size: 0.8rem; border: 1px solid var(--accent-gold); padding: 2px 5px; border-radius: 3px;">VER</a>
+                    </div>
+                    """
+
                 # Render Asks (Red - Top)
                 for _, row in asks.iterrows():
-                    st.markdown(f"""
-                    <div class="order-row ask">
-                        <span>{row['sentiment']:.2f} ▼</span>
-                        <span>{row.get('influence_score', 0)}</span>
-                        <span>{row['user_name']}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown(render_row(row, "ask"), unsafe_allow_html=True)
                     
                 # Spread / Current Price
                 avg_sentiment = feed_data['sentiment'].mean()
-                # Use theme colors: Blue for Positive (Support), Red for Negative (Opposition)
                 price_color = "var(--accent-blue)" if avg_sentiment >= 0 else "var(--accent-red)"
                 st.markdown(f"""
                 <div style="padding: 10px; text-align: center; font-family: var(--font-mono); font-size: 16px; font-weight: bold; color: {price_color}; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background: var(--bg-color);">
@@ -858,13 +895,7 @@ with tab_social:
                 
                 # Render Bids (Green - Bottom)
                 for _, row in bids.iterrows():
-                    st.markdown(f"""
-                    <div class="order-row bid">
-                        <span>{row['sentiment']:.2f} ▲</span>
-                        <span>{row.get('influence_score', 0)}</span>
-                        <span>{row['user_name']}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown(render_row(row, "bid"), unsafe_allow_html=True)
                     
                 st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("</div></div>", unsafe_allow_html=True)
@@ -891,19 +922,19 @@ with tab_social:
                 st.markdown(f"""
                 <div class="hud-card">
                     <div style="text-align: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                        <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">{profile['Name']}</div>
-                        <div style="color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.8rem;">ID: {profile['User ID']}</div>
+                        <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">{profile['Nombre']}</div>
+                        <div style="color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.8rem;">ID: {profile['ID Usuario']}</div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem; font-family: var(--font-mono);">
-                        <div><span style="color:var(--text-secondary);">AFINIDAD</span><br><span style="color:var(--text-primary);">{profile['Affinity']}</span></div>
-                        <div><span style="color:var(--text-secondary);">SCORE</span><br><span style="color:var(--accent-gold);">{profile['Influence Score']}/100</span></div>
-                        <div><span style="color:var(--text-secondary);">GUSTOS</span><br><span style="color:var(--text-primary);">{profile['Political Taste']}</span></div>
-                        <div><span style="color:var(--text-secondary);">EDAD</span><br><span style="color:var(--text-primary);">{profile['Age Group']}</span></div>
+                        <div><span style="color:var(--text-secondary);">AFINIDAD</span><br><span style="color:var(--text-primary);">{profile['Afinidad']}</span></div>
+                        <div><span style="color:var(--text-secondary);">SCORE</span><br><span style="color:var(--accent-gold);">{profile['Puntaje Influencia']}/100</span></div>
+                        <div><span style="color:var(--text-secondary);">GUSTOS</span><br><span style="color:var(--text-primary);">{profile['Gusto Político']}</span></div>
+                        <div><span style="color:var(--text-secondary);">EDAD</span><br><span style="color:var(--text-primary);">{profile['Grupo Edad']}</span></div>
                     </div>
                     <div style="margin-top: 15px;">
                         <span style="color:var(--text-secondary); font-size: 0.8rem;">INTERESES</span>
                         <div style="margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px;">
-                            {''.join([f'<span style="background:var(--surface-color); color:var(--text-primary); padding:2px 6px; border-radius:2px; font-size:0.75rem;">{i}</span>' for i in profile['Primary Interests'].split(', ')])}
+                            {''.join([f'<span style="background:var(--surface-color); color:var(--text-primary); padding:2px 6px; border-radius:2px; font-size:0.75rem;">{i}</span>' for i in profile['Intereses'].split(', ')])}
                         </div>
                     </div>
                 </div>
