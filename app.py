@@ -12,16 +12,19 @@ import src.e26_processor
 import src.social_sentinel
 import src.targeting_brain
 import src.survey_handler
+import src.ad_engine
 
 importlib.reload(src.e26_processor)
 importlib.reload(src.social_sentinel)
 importlib.reload(src.targeting_brain)
 importlib.reload(src.survey_handler)
+importlib.reload(src.ad_engine)
 
 from src.e26_processor import E26Processor
 from src.social_sentinel import SocialSentinel
 from src.targeting_brain import TargetingBrain
 from src.survey_handler import AutomatedSurveyHandler
+from src.ad_engine import AdEngine
 
 # Page Config
 st.set_page_config(
@@ -260,6 +263,11 @@ def load_modules():
 
 e26_mod, social_mod, brain_mod, survey_mod = load_modules()
 
+# Initialize AdEngine in Session State for persistence
+if 'ad_engine' not in st.session_state:
+    st.session_state.ad_engine = AdEngine()
+ad_mod = st.session_state.ad_engine
+
 # --- CONFIGURATION & CONSTANTS ---
 candidate_options = [
     "MARIA FERNANDA CABAL",
@@ -442,7 +450,7 @@ with col_metrics:
     st.markdown("</div></div>", unsafe_allow_html=True)
 
 # --- MULTI-WINDOW INTERFACE (TABS) ---
-tab_map, tab_sim, tab_control, tab_social, tab_crm = st.tabs(["🗺️ OPS GEOSPACIALES", "🔮 PLATAFORMA SIMULACIÓN", "🎛️ SALA DE CONTROL", "📡 INTEL SOCIAL", "👥 OPS DE CAMPO"])
+tab_map, tab_sim, tab_control, tab_social, tab_crm, tab_ads = st.tabs(["🗺️ OPS GEOSPACIALES", "🔮 PLATAFORMA SIMULACIÓN", "🎛️ SALA DE CONTROL", "📡 INTEL SOCIAL", "👥 OPS DE CAMPO", "📢 EJECUCIÓN PUBLICITARIA"])
 
 with tab_map:
     # --- GEO-ANALYSIS PANEL ---
@@ -1122,6 +1130,106 @@ with tab_crm:
             file_name="tayllerand_call_list.csv",
             mime="text/csv"
         )
+        st.markdown("</div></div>", unsafe_allow_html=True)
+
+with tab_ads:
+    # --- ADVERTISING EXECUTION PANEL ---
+    col_ad_config, col_ad_perf = st.columns([1, 2])
+    
+    with col_ad_config:
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>CONFIGURACIÓN DE CAMPAÑA</span>
+                <span>META API</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
+        
+        # 1. Select Persona
+        st.markdown("#### 🎯 OBJETIVO (MICRO-SEGMENTO)")
+        # Get persona from Brain
+        default_persona = brain_mod.generate_personas(synthesized_data)
+        persona_name = st.text_input("Nombre Segmento", value=default_persona.get("Persona", "Votante General"))
+        
+        # Audience Estimation
+        audience_est = ad_mod.estimate_audience_size(default_persona)
+        st.metric("Alcance Potencial", f"{audience_est['potential_reach']:,}", "Personas")
+        
+        st.markdown("---")
+        
+        # 2. Budget & Channels
+        st.markdown("#### 💰 PRESUPUESTO Y CANALES")
+        budget = st.slider("Presupuesto Diario (COP)", 100000, 5000000, 500000, step=50000)
+        channels = st.multiselect("Canales de Distribución", ad_mod.channels, default=["Facebook", "Instagram"])
+        
+        st.markdown("---")
+        
+        # 3. Creative Preview
+        st.markdown("#### 🎨 CREATIVOS GENERADOS")
+        creatives = ad_mod.generate_ad_creatives(default_persona)
+        selected_creative = st.selectbox("Seleccionar Variación", [c['headline'] for c in creatives])
+        
+        # Find selected creative dict
+        creative_obj = next((c for c in creatives if c['headline'] == selected_creative), creatives[0])
+        st.info(f"📄 **Copy**: {creative_obj['body']}")
+        
+        if st.button("🚀 LANZAR CAMPAÑA", use_container_width=True):
+            with st.spinner("Conectando con Meta Ads Manager..."):
+                time.sleep(1.5) # Simulating API call
+                res = ad_mod.launch_campaign(f"CMP-{persona_name}", default_persona, budget, channels)
+                st.success(f"Campaña {res['id']} Activada Exitosamente")
+                st.rerun()
+                
+        st.markdown("</div></div>", unsafe_allow_html=True)
+        
+    with col_ad_perf:
+        st.markdown("""
+        <div class="panel-container">
+            <div class="panel-header">
+                <span>RENDIMIENTO EN VIVO</span>
+                <span>DASHBOARD</span>
+            </div>
+            <div class="panel-content">
+        """, unsafe_allow_html=True)
+        
+        # Metrics Overview
+        active_df = ad_mod.get_active_campaigns_df()
+        
+        if not active_df.empty:
+            # Aggregate Metrics
+            total_spend = active_df["Inversión"].apply(lambda x: int(x.replace('$','').replace(',',''))).sum()
+            total_clicks = active_df["Clicks"].apply(lambda x: int(x.replace(',',''))).sum()
+            total_conv = active_df["Conversiones"].sum()
+            
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Inversión Total", f"${total_spend:,}")
+            m2.metric("Clicks Totales", f"{total_clicks:,}")
+            m3.metric("Conversiones (Leads)", f"{total_conv:,}")
+            
+            st.markdown("### 📋 CAMPAÑAS ACTIVAS")
+            st.dataframe(active_df, use_container_width=True)
+            
+            st.markdown("### 📈 ANÁLISIS DE RENDIMIENTO")
+            # Simple chart if data exists
+            if total_clicks > 0:
+                chart_data = pd.DataFrame({
+                    "Campaña": active_df["Campaña"],
+                    "Clicks": active_df["Clicks"].apply(lambda x: int(x.replace(',','')))
+                })
+                st.bar_chart(chart_data.set_index("Campaña"))
+                
+        else:
+            st.info("No hay campañas activas. Inicie una campaña en el panel de configuración.")
+            
+            # Placeholder for visual appeal
+            st.markdown("""
+            <div style="text-align: center; padding: 50px; color: #64748b;">
+                <h1>📡</h1>
+                <p>ESPERANDO SEÑAL DE SATÉLITE...</p>
+            </div>
+            """, unsafe_allow_html=True)
+
         st.markdown("</div></div>", unsafe_allow_html=True)
 
 # --- FOOTER ---
