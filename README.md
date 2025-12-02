@@ -23,54 +23,63 @@ La versión **v3.5** introduce una arquitectura de interfaz de 3 columnas, naveg
 ### 3. Inteligencia Social Avanzada (Social Sentinel)
 - **Libro de Órdenes de Sentimiento**: Visualización tipo "Trading" de opiniones positivas (Bids) y negativas (Asks).
 - **Perfilador de Votantes (KYC)**: Análisis profundo de usuarios individuales para reclutamiento o neutralización.
-- **Simulador de Mensajes**: Predicción de impacto y resonancia de mensajes antes de su difusión.
+- **Simulador de Mensajes**: Predicción de impacto de mensajes.
 
 ### 4. Plataforma de Simulación (War Room)
-- **Gemelo Digital**: Simulación de escenarios electorales basada en datos históricos y tendencias actuales.
-- **Constructor de Coaliciones**: Análisis de impacto de alianzas estratégicas.
-- **Gamificación GOTV**: Estrategias para maximizar la participación el día D.
+- **Gemelo Digital**: Simulación de escenarios electorales.
+- **Constructor de Coaliciones**: Análisis de impacto de alianzas.
+- **Gamificación GOTV**: Estrategias para maximizar la participación.
+
+## 🏗️ Arquitectura Técnica (DevSecOps)
+
+El sistema ha sido refactorizado siguiendo principios de **DevSecOps** y **Arquitectura Modular**:
+
+### Estructura Modular
+```
+TAYLLERAND/
+├── app.py                 # Punto de entrada principal
+├── src/
+│   ├── components/        # Componentes UI (Vistas)
+│   │   ├── layout.py      # Configuración y CSS global
+│   │   ├── map.py         # Lógica de mapas Folium
+│   │   └── ...
+│   └── services/          # Lógica de Negocio (Controladores)
+│       ├── e26_processor.py
+│       ├── social_sentinel.py
+│       └── ...
+├── tests/                 # Pruebas Automatizadas
+├── .github/workflows/     # Pipeline CI/CD
+├── Dockerfile             # Contenedorización
+└── docker-compose.yml     # Orquestación Local
+```
+
+### Pipeline CI/CD
+El proyecto incluye un pipeline de GitHub Actions que ejecuta automáticamente:
+1.  **Linting**: Verificación de estilo de código (flake8).
+2.  **Seguridad**: Análisis estático de vulnerabilidades (bandit).
+3.  **Pruebas**: Ejecución de pruebas unitarias (pytest).
 
 ## 🛠️ Instalación y Ejecución
 
-### Requisitos Previos
-- Python 3.8+
-- Pip
-
-### Pasos
-1.  **Clonar el Repositorio**:
+### Opción A: Docker (Recomendado)
+1.  **Construir y Correr**:
     ```bash
-    git clone https://github.com/usuario/tayllerand-os.git
-    cd tayllerand-os
+    docker-compose up --build
     ```
+2.  **Acceso**: `http://localhost:8501`
 
-2.  **Instalar Dependencias**:
+### Opción B: Manual
+1.  **Instalar Dependencias**:
     ```bash
     pip install -r requirements.txt
     ```
-
-3.  **Ejecutar el Sistema**:
+2.  **Ejecutar**:
     ```bash
-    python -m streamlit run app.py
+    streamlit run app.py
     ```
 
-4.  **Acceso**:
-    El sistema estará disponible en `http://localhost:8501`.
-
-## 📂 Estructura del Proyecto
-```
-TAYLLERAND/
-├── app.py                 # Núcleo del Sistema (Interfaz y Lógica)
-├── src/
-│   ├── e26_processor.py   # Procesamiento de Datos Electorales
-│   ├── social_sentinel.py # Motor de Inteligencia Social
-│   ├── targeting_brain.py # Cerebro de Simulación y Estrategia
-│   └── survey_handler.py  # Gestión de CRM y Encuestas
-├── data/                  # Almacenamiento de Datos (CSV/Parquet)
-└── README.md              # Documentación Clasificada
-```
-
-## 🔐 Seguridad y Privacidad
-Este sistema está clasificado para **SOLO OJOS AUTORIZADOS**. El acceso a los módulos de inteligencia y datos de votantes debe ser restringido según los protocolos de la campaña.
+## 🔐 Seguridad
+Este sistema está clasificado para **SOLO OJOS AUTORIZADOS**. El acceso a los módulos de inteligencia y datos de votantes debe ser restringido.
 
 ---
 *Tayllerand OS - "La política es el arte de lo posible."*

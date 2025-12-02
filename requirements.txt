@@ -1,0 +1,12 @@
+streamlit
+pandas
+folium
+streamlit-folium
+altair
+pytest
+flake8
+bandit
+tweepy
+nltk
+scikit-learn
+textblob

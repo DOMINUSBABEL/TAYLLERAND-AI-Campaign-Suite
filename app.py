@@ -14,6 +14,9 @@ from src.components.metrics import render_metrics
 from src.components.map import render_map_tab
 from src.components.tabs import render_simulation_tab, render_control_tab
 
+from src.components.crm import render_crm
+from src.components.ads import render_ads
+
 # --- INITIALIZATION ---
 setup_page()
 load_css()
@@ -101,9 +104,7 @@ with tab_social:
     st.dataframe(df_social)
 
 with tab_crm:
-    st.header("OPS DE CAMPO")
-    st.write("Módulo de operaciones de campo en construcción.")
+    render_crm(survey_mod)
 
 with tab_ads:
-    st.header("EJECUCIÓN PUBLICITARIA")
-    st.write("Módulo de publicidad en construcción.")
+    render_ads(ad_mod)
