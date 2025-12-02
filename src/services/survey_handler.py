@@ -73,6 +73,7 @@ class AutomatedSurveyHandler:
             "lat": lat,
             "lon": lon,
             "last_contact_date": response_data.get("last_contact", None),
+            "location_text": response_data.get("location_text", ""),
             "source": "survey"
         }
 
