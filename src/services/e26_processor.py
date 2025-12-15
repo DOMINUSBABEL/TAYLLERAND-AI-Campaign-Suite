@@ -103,25 +103,23 @@ class E26Processor:
     def load_raw_e26(self, file_path):
         """
         Parses raw, headerless E-26 CSVs.
-        Mappings:
-        - Col 5: ZONA (Zero-pad 2 digits)
-        - Col 6: PUESTO
-        - Col 9: COMUNA (Used for checking)
+        Mappings (Based on 2022 Format):
+        - Col 3: MUNICIPIO
+        - Col 4: ZONA (Code)
+        - Col 8: PUESTO (Name)
         - Col 16: CANDIDATE NAME
         - Col 17: VOTES
         """
         try:
             # Read without header
-            df = pd.read_csv(file_path, header=None)
+            df = pd.read_csv(file_path, header=None, dtype=str)
             
             # Select and Rename Columns
-            # We strictly need indices 5, 6, 16, 17
-            # Index 1 (Dept) and 3 (City) are assumed correct for this context (Medellin)
-            
             target_df = pd.DataFrame()
-            target_df['ZONA'] = df[5].astype(str).str.zfill(2)
-            target_df['PUESTO'] = df[6]
-            target_df['CANDIDATO'] = df[16].str.strip()
+            target_df['MUNICIPIO'] = df[3].astype(str).str.strip().str.upper()
+            target_df['ZONA'] = df[4].astype(str).str.zfill(2)
+            target_df['PUESTO'] = df[8].astype(str).str.strip().str.upper()
+            target_df['CANDIDATO'] = df[16].astype(str).str.strip()
             target_df['VOTOS'] = df[17].fillna(0).astype(int)
             
             return target_df
