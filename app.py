@@ -32,13 +32,13 @@ if 'ad_engine' not in st.session_state:
 ad_mod = st.session_state.ad_engine
 
 # --- CONFIGURATION & CONSTANTS ---
+# EXACT NAMES FROM CSV
 candidate_options = [
-    "MARIA FERNANDA CABAL",
-    "CARLOS HUMBERTO GARCIA",
+    "ANDERSON DUQUE MORALES",
+    "CARLOS HUMBERTO GARCIA VELASQUEZ",
+    "MARIA FERNANDA CABAL", # Keep for demo/fallback
     "JOSE LUIS NOREÑA",
-    "ANDERSON DUQUE",
-    "CENTRO DEMOCRATICO",
-    "CANDIDATO 1"
+    "CENTRO DEMOCRATICO"
 ]
 
 # --- SESSION STATE ---
@@ -64,9 +64,38 @@ with col_roster:
     selected_candidate = render_roster(candidate_options)
 
 # --- DATA PROCESSING ---
-specific_targets = list(set([st.session_state.selected_candidate] + candidate_options))
-# Load Demo Data
-raw_df = e26_mod.load_demo_data()
+import os
+import pandas as pd
+
+# Use candidate_options directly to maintain stable order. 
+# Ensure selected_candidate is included if it somehow isn't (unlikely with current logic).
+specific_targets = [c for c in candidate_options] 
+if st.session_state.selected_candidate not in specific_targets:
+    specific_targets.insert(0, st.session_state.selected_candidate)
+
+
+# Check for Real Data
+real_files = ["resultado ANDERSON DUQUE.csv", "resultado carlos humberto garcía .csv"]
+found_real_data = False
+raw_df = pd.DataFrame()
+
+dfs = []
+for f in real_files:
+    if os.path.exists(f):
+        print(f"Loading real data: {f}")
+        df_part = e26_mod.load_raw_e26(f)
+        if not df_part.empty:
+            dfs.append(df_part)
+            found_real_data = True
+
+if found_real_data:
+    raw_df = pd.concat(dfs, ignore_index=True)
+    st.session_state.is_demo = False
+else:
+    # Load Demo Data
+    raw_df = e26_mod.load_demo_data()
+    st.session_state.is_demo = True
+
 df_history = e26_mod.process_data(raw_df, specific_targets)
 df_social = social_mod.generate_verified_feed()
 synthesized_data = brain_mod.synthesize(df_history, df_social)

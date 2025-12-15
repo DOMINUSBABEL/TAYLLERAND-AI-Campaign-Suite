@@ -1,0 +1,15 @@
+--- DEBUGGING resultado carlos humberto garcía .csv ---
+DataFrame Loaded. Shape: (7931, 4)
+
+Unique Candidates Found in File:
+'CARLOS HUMBERTO GARCIA VELASQUEZ' (Len: 32)
+
+--- MATCH CHECK ---
+Perfect Match Found: 'CARLOS HUMBERTO GARCIA VELASQUEZ'
+
+--- PROCESS DATA SIMULATION ---
+Rows matching str.contains('CARLOS HUMBERTO GARCIA VELASQUEZ'): 7931
+Base Group Rows: 819
+Target Votes Group Rows: 819
+Merged Rows: 819
+Merged Columns: ['ZONA', 'PUESTO', 'VOTOS_x', 'VOTOS_y']

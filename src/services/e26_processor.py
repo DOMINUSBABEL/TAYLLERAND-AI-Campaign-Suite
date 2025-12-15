@@ -113,6 +113,36 @@ class E26Processor:
             print(f"Error loading preload data: {e}")
             return pd.DataFrame()
 
+    def load_raw_e26(self, file_path):
+        """
+        Parses raw, headerless E-26 CSVs.
+        Mappings:
+        - Col 5: ZONA (Zero-pad 2 digits)
+        - Col 6: PUESTO
+        - Col 9: COMUNA (Used for checking)
+        - Col 16: CANDIDATE NAME
+        - Col 17: VOTES
+        """
+        try:
+            # Read without header
+            df = pd.read_csv(file_path, header=None)
+            
+            # Select and Rename Columns
+            # We strictly need indices 5, 6, 16, 17
+            # Index 1 (Dept) and 3 (City) are assumed correct for this context (Medellin)
+            
+            target_df = pd.DataFrame()
+            target_df['ZONA'] = df[5].astype(str).str.zfill(2)
+            target_df['PUESTO'] = df[6]
+            target_df['CANDIDATO'] = df[16].str.strip()
+            target_df['VOTOS'] = df[17].fillna(0).astype(int)
+            
+            return target_df
+            
+        except Exception as e:
+            print(f"Error loading raw E-26 file {file_path}: {e}")
+            return pd.DataFrame()
+
     def process_data(self, df, target_candidates=None):
         """
         Aggregates votes by Puesto for a list of target candidates.
