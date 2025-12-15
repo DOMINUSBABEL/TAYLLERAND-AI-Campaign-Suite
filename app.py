@@ -34,8 +34,8 @@ ad_mod = st.session_state.ad_engine
 # --- CONFIGURATION & CONSTANTS ---
 # EXACT NAMES FROM CSV
 candidate_options = [
-    "ANDERSON DUQUE MORALES",
-    "CARLOS HUMBERTO GARCIA VELASQUEZ",
+    "ANDERSON DUQUE",
+    "CARLOS HUMBERTO GARCIA",
     "MARIA FERNANDA CABAL", # Keep for demo/fallback
     "JOSE LUIS NOREÑA",
     "CENTRO DEMOCRATICO"

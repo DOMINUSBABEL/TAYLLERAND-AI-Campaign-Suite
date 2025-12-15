@@ -1,5 +1,6 @@
 import pandas as pd
 import io
+import os
 
 class E26Processor:
     """
@@ -7,63 +8,49 @@ class E26Processor:
     Updated for Strict Real Data: CSV Ingestion Only.
     """
     def __init__(self):
-        # Hardcoded Geocoding DB for Medellín Voting Posts (Partial/Key Locations)
-        self.geo_db = {
-            "EAFIT": (6.2005, -75.5785),
-            "UPB": (6.2420, -75.5900),
-            "MARYMOUNT": (6.2050, -75.5600),
-            "SAN JOSE DE LA SALLE": (6.2205, -75.5685),
-            "CLUB CAMPESTRE": (6.1900, -75.5750),
-            "PLAZA MAYOR": (6.2430, -75.5750),
-            "ESTADIO ATANASIO GIRARDOT": (6.2606, -75.5881),
-            "INEM JOSE FELIX DE RESTREPO": (6.2080, -75.5700),
-            "POLITECNICO JAIME ISAZA CADAVID": (6.2120, -75.5750),
-            "COL SAN IGNACIO": (6.2445, -75.5638),
-            "I.E. VILLA HERMOSA": (6.2550, -75.5450),
-            "I.E. MANRIQUE CENTRAL": (6.2780, -75.5480),
-            "I.E. EL PICACHO": (6.2950, -75.5850),
-            "ITM ROBLEDO": (6.2750, -75.5950),
-            "UNIV. DE MEDELLIN": (6.2310, -75.6100),
-            "PARQUE BIBLIOTECA BELEN": (6.2300, -75.6050),
-            "SAN CRISTOBAL PARQUE": (6.2780, -75.6350),
-            "SAN ANTONIO DE PRADO": (6.1850, -75.6550),
-            "SANTA ELENA": (6.2050, -75.5000),
-        }
-        
-        # Comuna Centroids for Deterministic Fallback
-        self.comuna_centroids = {
-            "01": (6.295, -75.545), "02": (6.285, -75.555), "03": (6.275, -75.550), "04": (6.265, -75.560),
-            "05": (6.290, -75.575), "06": (6.280, -75.585), "07": (6.270, -75.595), "08": (6.250, -75.545),
-            "09": (6.235, -75.550), "10": (6.250, -75.570), "11": (6.245, -75.595), "12": (6.255, -75.605),
-            "13": (6.255, -75.615), "14": (6.210, -75.570), "15": (6.220, -75.585), "16": (6.230, -75.605),
-            "50": (6.340, -75.650), "60": (6.280, -75.630), "70": (6.210, -75.630), "80": (6.180, -75.640), "90": (6.210, -75.500)
-        }
+        # Load Master Geocoding Table
+        try:
+            stations_path = os.path.join("src", "data", "voting_stations.csv")
+            if os.path.exists(stations_path):
+                self.stations_df = pd.read_csv(stations_path)
+                # Optimize lookup
+                self.stations_df['PUESTO_NORM'] = self.stations_df['PUESTO'].astype(str).str.upper()
+                self.stations_df['ZONA_NORM'] = self.stations_df['ZONA'].astype(str).str.zfill(2)
+            else:
+                self.stations_df = pd.DataFrame()
+        except Exception as e:
+            print(f"Error loading voting stations CSV: {e}")
+            self.stations_df = pd.DataFrame()
 
     def geocode_station(self, station_name, zone_id=None):
         """
         Tries to find coordinates for a station name.
-        1. Exact/Fuzzy Match in DB.
-        2. Deterministic Offset from Comuna Centroid (using Zone ID).
+        1. Exact Match in Loaded CSV.
+        2. Fallback to centralized average (if CSV missing).
         """
-        station_upper = str(station_name).upper()
-        
-        # 1. DB Match
-        for key, coords in self.geo_db.items():
-            if key in station_upper:
-                return coords
-        
-        # 2. Deterministic Fallback (Coverage Engine)
-        if zone_id:
-            zone_str = str(zone_id).zfill(2)
-            centroid = self.comuna_centroids.get(zone_str)
-            if centroid:
-                # Generate deterministic offset based on station name hash
-                # This ensures the station always stays in the same place
-                h = hash(station_upper)
-                # Offset range: +/- 0.005 degrees (~500m)
-                lat_offset = (h % 100 - 50) / 10000.0 
-                lon_offset = ((h // 100) % 100 - 50) / 10000.0
-                return (centroid[0] + lat_offset, centroid[1] + lon_offset)
+        if self.stations_df.empty:
+             return (6.2442, -75.5812)
+
+        try:
+            station_upper = str(station_name).upper()
+            
+            # Simple Filter Matching
+            matches = self.stations_df[self.stations_df['PUESTO_NORM'] == station_upper]
+            
+            # Refine by Zone if provided
+            if zone_id and not matches.empty:
+                zone_str = str(zone_id).zfill(2)
+                zone_matches = matches[matches['ZONA_NORM'] == zone_str]
+                if not zone_matches.empty:
+                    matches = zone_matches
+            
+            if not matches.empty:
+                row = matches.iloc[0]
+                return (float(row['LAT']), float(row['LON']))
+                
+        except Exception as e:
+            # print(f"Geocoding Error: {e}")
+            pass
         
         # 3. Ultimate Fallback (Centro)
         return (6.2442, -75.5812)
